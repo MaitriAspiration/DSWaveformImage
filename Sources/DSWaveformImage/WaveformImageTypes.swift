@@ -66,7 +66,53 @@ public extension WaveformRenderer {
     }
 }
 
+/**
+ Opt-in protocol for renderers that interpret a specific channel layout of the source audio.
+
+ `WaveformView` and `WaveformImageDrawer` check for this conformance to decide what to ask the
+ analyzer for. Renderers that don't conform implicitly use `.merged`. Conform a custom renderer
+ if it needs `.specific(N)` or `.stereo` sample layouts.
+ */
+public protocol ChannelAwareWaveformRenderer: WaveformRenderer {
+    var channelSelection: Waveform.ChannelSelection { get }
+}
+
 public enum Waveform {
+    /**
+     Channel selection for rendering multi-channel audio.
+     */
+    public enum ChannelSelection: Equatable, Sendable {
+        /// Merges all channels into a single waveform (default behavior, backward compatible).
+        case merged
+
+        /// Renders only the specified channel (0-indexed). For stereo: 0 = left, 1 = right.
+        case specific(Int)
+
+        /// Returns samples for both stereo channels concatenated as `[allLeft..., allRight...]`.
+        ///
+        /// Renderer usage: construct via `LinearWaveformRenderer.stereo`, which splits the
+        /// concatenated samples and draws left on top / right on bottom. Call
+        /// `WaveformAnalyzer.samples(...)` with this case directly only if you intend to consume the
+        /// raw L/R sample array yourself. For non-stereo (mono) input the single channel is mirrored
+        /// into both halves.
+        case stereo
+    }
+
+    /// Subset of `ChannelSelection` that produces a single waveform's worth of samples. This is what
+    /// `LinearWaveformRenderer`'s init accepts — `.stereo` is constructed via the dedicated
+    /// `LinearWaveformRenderer.stereo` factory instead.
+    public enum SingleChannelSelection: Equatable, Sendable {
+        case merged
+        case specific(Int)
+
+        var asChannelSelection: ChannelSelection {
+            switch self {
+            case .merged: return .merged
+            case .specific(let index): return .specific(index)
+            }
+        }
+    }
+    
     /** Position of the drawn waveform. */
      public enum Position: Equatable {
          /// **top**: Draws the waveform at the top of the image, such that only the bottom 50% are visible.

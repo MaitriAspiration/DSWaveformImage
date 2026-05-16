@@ -59,7 +59,8 @@ public struct WaveformView<Content: View>: View {
             Task(priority: .userInitiated) {
                 do {
                     let samplesNeeded = Int(size.width * configuration.scale)
-                    let samples = try await WaveformAnalyzer().samples(fromAudioAt: url, count: samplesNeeded)
+                    let channelSelection = (renderer as? ChannelAwareWaveformRenderer)?.channelSelection ?? .merged
+                    let samples = try await WaveformAnalyzer().samples(fromAudioAt: url, count: samplesNeeded, channelSelection: channelSelection)
 
                     await MainActor.run {
                         self.currentSize = size

@@ -18,7 +18,15 @@ struct WaveformAnalysis {
 
 /// Calculates the waveform of the initialized asset URL.
 public struct WaveformAnalyzer: Sendable {
-    public enum AnalyzeError: Error { case generic, userError, emptyTracks, readerError(AVAssetReader.Status) }
+    public enum AnalyzeError: Error {
+        case generic
+        case userError
+        case emptyTracks
+        case readerError(AVAssetReader.Status)
+        /// The `channelSelection: .specific(index)` requested a channel that doesn't exist on the audio track.
+        /// `available` is the actual channel count of the track.
+        case invalidChannelIndex(requested: Int, available: Int)
+    }
 
     /// Everything below this noise floor cutoff will be clipped and interpreted as silence. Default is `-50.0`.
     public var noiseFloorDecibelCutoff: Float = -50.0
@@ -27,20 +35,26 @@ public struct WaveformAnalyzer: Sendable {
 
     /// Calculates the amplitude envelope of the initialized audio asset URL, downsampled to the required `count` amount of samples.
     /// - Parameter fromAudioAt: local filesystem URL of the audio file to process.
-    /// - Parameter count: amount of samples to be calculated. Downsamples.
+    /// - Parameter count: amount of samples to be calculated **per rendered channel slot**. For `.merged`
+    ///   and `.specific` this is the total length of the returned array; for `.stereo` the result is
+    ///   `count * 2` (left samples followed by right samples).
+    /// - Parameter channelSelection: which channel(s) to extract. Default is `.merged` (all channels combined).
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
-    public func samples(fromAudioAt audioAssetURL: URL, count: Int, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
+    public func samples(fromAudioAt audioAssetURL: URL, count: Int, channelSelection: Waveform.ChannelSelection = .merged, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
         try await Task(priority: taskPriority(qos: qos)) {
             let audioAsset = AVURLAsset(url: audioAssetURL, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
-            return try await samples(fromAsset: audioAsset, count: count, qos: qos)
+            return try await samples(fromAsset: audioAsset, count: count, channelSelection: channelSelection, qos: qos)
         }.value
     }
 
     /// Calculates the amplitude envelope of the initialized audio asset, downsampled to the required `count` amount of samples.
     /// - Parameter audioAsset: asset of the audio file to process.
-    /// - Parameter count: amount of samples to be calculated. Downsamples.
+    /// - Parameter count: amount of samples to be calculated **per rendered channel slot**. For `.merged`
+    ///   and `.specific` this is the total length of the returned array; for `.stereo` the result is
+    ///   `count * 2` (left samples followed by right samples).
+    /// - Parameter channelSelection: which channel(s) to extract. Default is `.merged` (all channels combined).
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
-    public func samples(fromAsset audioAsset: AVAsset, count: Int, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
+    public func samples(fromAsset audioAsset: AVAsset, count: Int, channelSelection: Waveform.ChannelSelection = .merged, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
         try await Task(priority: taskPriority(qos: qos)) {
             let assetReader = try AVAssetReader(asset: audioAsset)
 
@@ -48,8 +62,16 @@ public struct WaveformAnalyzer: Sendable {
                 throw AnalyzeError.emptyTracks
             }
 
-            return try await waveformSamples(track: assetTrack, reader: assetReader, count: count, fftBands: nil).amplitudes
+            return try await waveformSamples(track: assetTrack, reader: assetReader, count: count, channelSelection: channelSelection, fftBands: nil).amplitudes
         }.value
+    }
+
+    /// Calculates the amplitude envelope of the initialized audio asset URL, downsampled to the required `count` amount of samples.
+    /// - Parameter fromAudioAt: local filesystem URL of the audio file to process.
+    /// - Parameter count: amount of samples to be calculated. Downsamples.
+    /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
+    public func samples(fromAudioAt audioAssetURL: URL, count: Int, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
+        try await samples(fromAudioAt: audioAssetURL, count: count, channelSelection: .merged, qos: qos)
     }
 
     /// Calculates the amplitude envelope of the initialized audio asset URL, downsampled to the required `count` amount of samples.
@@ -79,17 +101,24 @@ fileprivate extension WaveformAnalyzer {
             track audioAssetTrack: AVAssetTrack,
             reader assetReader: AVAssetReader,
             count requiredNumberOfSamples: Int,
+            channelSelection: Waveform.ChannelSelection = .merged,
             fftBands: Int?
     ) async throws -> WaveformAnalysis {
         guard requiredNumberOfSamples > 0 else {
             throw AnalyzeError.userError
         }
 
-        let trackOutput = AVAssetReaderTrackOutput(track: audioAssetTrack, outputSettings: outputSettings())
+        let trackOutput = AVAssetReaderTrackOutput(track: audioAssetTrack, outputSettings: outputSettings(channelSelection: channelSelection))
         assetReader.add(trackOutput)
 
-        let totalSamples = try await totalSamples(of: audioAssetTrack)
-        let analysis = extract(totalSamples, downsampledTo: requiredNumberOfSamples, from: assetReader, fftBands: fftBands)
+        if case .specific(let channelIndex) = channelSelection,
+           let info = channelInfo(from: assetReader),
+           channelIndex < 0 || channelIndex >= info.channelCount {
+            throw AnalyzeError.invalidChannelIndex(requested: channelIndex, available: info.channelCount)
+        }
+
+        let totalSamples = try await totalSamples(of: audioAssetTrack, channelSelection: channelSelection)
+        let analysis = extract(totalSamples, downsampledTo: requiredNumberOfSamples, from: assetReader, channelSelection: channelSelection, fftBands: fftBands)
 
         switch assetReader.status {
         case .completed:
@@ -104,9 +133,12 @@ fileprivate extension WaveformAnalyzer {
         _ totalSamples: Int,
         downsampledTo targetSampleCount: Int,
         from assetReader: AVAssetReader,
+        channelSelection: Waveform.ChannelSelection = .merged,
         fftBands: Int?
     ) -> WaveformAnalysis {
-        var outputSamples = [Float]()
+        let isStereo = (channelSelection == .stereo)
+        var leftSamples = [Float]()
+        var rightSamples = [Float]()
         var outputFFT = fftBands == nil ? nil : [TempiFFT]()
         var sampleBuffer = Data()
         var sampleBufferFFT = Data()
@@ -134,12 +166,12 @@ fileprivate extension WaveformAnalyzer {
             }
             CMSampleBufferInvalidate(nextSampleBuffer)
 
-            let processedSamples = process(sampleBuffer, downsampleTo: samplesPerPixel)
-            outputSamples += processedSamples
+            let result = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, channelSelection: channelSelection)
+            leftSamples += result.left
+            rightSamples += result.right
 
-            if processedSamples.count > 0 {
-                // vDSP_desamp uses strides of samplesPerPixel; remove only the processed ones
-                sampleBuffer.removeFirst(processedSamples.count * samplesPerPixel * MemoryLayout<Int16>.size)
+            if result.bytesConsumed > 0 {
+                sampleBuffer.removeFirst(result.bytesConsumed)
 
                 // this takes care of a memory leak where Memory continues to increase even though it should clear after calling .removeFirst(…) above.
                 sampleBuffer = Data(sampleBuffer)
@@ -154,54 +186,109 @@ fileprivate extension WaveformAnalyzer {
 
         // if we don't have enough pixels yet,
         // process leftover samples with padding (to reach multiple of samplesPerPixel for vDSP_desamp)
-        if outputSamples.count < targetSampleCount {
-            let missingSampleCount = (targetSampleCount - outputSamples.count) * samplesPerPixel
-            let backfillPaddingSampleCount = missingSampleCount - (sampleBuffer.count / MemoryLayout<Int16>.size)
-            let backfillPaddingSampleCount16 = backfillPaddingSampleCount * MemoryLayout<Int16>.size
-            let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingSampleCount16)
-            sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingSampleCount16)
-            let processedSamples = process(sampleBuffer, downsampleTo: samplesPerPixel)
-            outputSamples += processedSamples
+        if leftSamples.count < targetSampleCount {
+            // each output sample for a single rendered "channel" consumes `samplesPerPixel * inputUnitsPerOutputSample`
+            // Int16s from the interleaved buffer.
+            let channelCount = channelInfo(from: assetReader)?.channelCount ?? 1
+            let inputUnitsPerOutputSample = (channelSelection == .merged) ? 1 : channelCount
+            let missingSampleCount = (targetSampleCount - leftSamples.count) * samplesPerPixel * inputUnitsPerOutputSample
+            let backfillPaddingSampleCount = max(0, missingSampleCount - (sampleBuffer.count / MemoryLayout<Int16>.size))
+            let backfillPaddingByteCount = backfillPaddingSampleCount * MemoryLayout<Int16>.size
+            let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingByteCount)
+            sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingByteCount)
+            let result = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, channelSelection: channelSelection)
+            leftSamples += result.left
+            rightSamples += result.right
         }
 
-        let targetSamples = Array(outputSamples[0..<targetSampleCount])
-        return WaveformAnalysis(amplitudes: normalize(targetSamples), fft: outputFFT)
+        let amplitudes: [Float]
+        if isStereo {
+            // Renderers in `.stereo` mode expect samples laid out as [allLeft..., allRight...]
+            amplitudes = Array(leftSamples.prefix(targetSampleCount)) + Array(rightSamples.prefix(targetSampleCount))
+        } else {
+            amplitudes = Array(leftSamples.prefix(targetSampleCount))
+        }
+        return WaveformAnalysis(amplitudes: normalize(amplitudes), fft: outputFFT)
     }
 
-    private func process(_ sampleBuffer: Data, downsampleTo samplesPerPixel: Int) -> [Float] {
-        var downSampledData = [Float]()
+    /// Result of processing one buffer chunk. `right` is populated only for `.stereo`. `bytesConsumed`
+    /// is how many bytes of the interleaved input buffer the caller should drop, since it varies with
+    /// channel count and which channels we actually consumed.
+    private struct ProcessResult {
+        let left: [Float]
+        let right: [Float]
+        let bytesConsumed: Int
+
+        static let empty = ProcessResult(left: [], right: [], bytesConsumed: 0)
+    }
+
+    private func process(_ sampleBuffer: Data, from assetReader: AVAssetReader, downsampleTo samplesPerPixel: Int, channelSelection: Waveform.ChannelSelection) -> ProcessResult {
         let sampleLength = sampleBuffer.count / MemoryLayout<Int16>.size
 
         // guard for crash in very long audio files
-        guard sampleLength / samplesPerPixel > 0 else { return downSampledData }
+        guard sampleLength / samplesPerPixel > 0 else { return .empty }
+
+        var result: ProcessResult = .empty
 
         sampleBuffer.withUnsafeBytes { (samplesRawPointer: UnsafeRawBufferPointer) in
-            let unsafeSamplesBufferPointer = samplesRawPointer.bindMemory(to: Int16.self)
-            let unsafeSamplesPointer = unsafeSamplesBufferPointer.baseAddress!
-            var loudestClipValue: Float = 0.0
-            var quietestClipValue = noiseFloorDecibelCutoff
-            var zeroDbEquivalent: Float = Float(Int16.max) // maximum amplitude storable in Int16 = 0 Db (loudest)
-            let samplesToProcess = vDSP_Length(sampleLength)
+            let basePointer = samplesRawPointer.bindMemory(to: Int16.self).baseAddress!
 
-            var processingBuffer = [Float](repeating: 0.0, count: Int(samplesToProcess))
-            vDSP_vflt16(unsafeSamplesPointer, 1, &processingBuffer, 1, samplesToProcess) // convert 16bit int to float (
-            vDSP_vabs(processingBuffer, 1, &processingBuffer, 1, samplesToProcess) // absolute amplitude value
-            vDSP_vdbcon(processingBuffer, 1, &zeroDbEquivalent, &processingBuffer, 1, samplesToProcess, 1) // convert to DB
-            vDSP_vclip(processingBuffer, 1, &quietestClipValue, &loudestClipValue, &processingBuffer, 1, samplesToProcess)
+            switch channelSelection {
+            case .merged:
+                // Treat the interleaved buffer as a single stream — matches the original behavior.
+                let left = downsample(from: basePointer, count: sampleLength, stride: 1, samplesPerPixel: samplesPerPixel)
+                result = ProcessResult(left: left, right: [], bytesConsumed: left.count * samplesPerPixel * MemoryLayout<Int16>.size)
 
-            let filter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)
-            let downSampledLength = sampleLength / samplesPerPixel
-            downSampledData = [Float](repeating: 0.0, count: downSampledLength)
+            case .specific(let channelIndex):
+                guard let info = channelInfo(from: assetReader),
+                      channelIndex >= 0 && channelIndex < info.channelCount else { return }
+                let perChannelLength = sampleLength / info.channelCount
+                let left = downsample(
+                    from: basePointer.advanced(by: channelIndex),
+                    count: perChannelLength,
+                    stride: info.channelCount,
+                    samplesPerPixel: samplesPerPixel
+                )
+                result = ProcessResult(left: left, right: [], bytesConsumed: left.count * samplesPerPixel * info.channelCount * MemoryLayout<Int16>.size)
 
-            vDSP_desamp(processingBuffer,
-                        vDSP_Stride(samplesPerPixel),
-                        filter,
-                        &downSampledData,
-                        vDSP_Length(downSampledLength),
-                        vDSP_Length(samplesPerPixel))
+            case .stereo:
+                guard let info = channelInfo(from: assetReader) else { return }
+                if info.channelCount < 2 {
+                    // Mono input: mirror the single channel into both top and bottom halves so a
+                    // stereo renderer still produces something sensible.
+                    let samples = downsample(from: basePointer, count: sampleLength, stride: 1, samplesPerPixel: samplesPerPixel)
+                    result = ProcessResult(left: samples, right: samples, bytesConsumed: samples.count * samplesPerPixel * MemoryLayout<Int16>.size)
+                } else {
+                    // For >2 channels we only visualize the first two as left/right; the rest are dropped.
+                    let perChannelLength = sampleLength / info.channelCount
+                    let left = downsample(from: basePointer, count: perChannelLength, stride: info.channelCount, samplesPerPixel: samplesPerPixel)
+                    let right = downsample(from: basePointer.advanced(by: 1), count: perChannelLength, stride: info.channelCount, samplesPerPixel: samplesPerPixel)
+                    result = ProcessResult(left: left, right: right, bytesConsumed: left.count * samplesPerPixel * info.channelCount * MemoryLayout<Int16>.size)
+                }
+            }
         }
 
-        return downSampledData
+        return result
+    }
+
+    /// abs → dB → clip → desamp pipeline shared across all channel-selection modes.
+    private func downsample(from pointer: UnsafePointer<Int16>, count: Int, stride: Int, samplesPerPixel: Int) -> [Float] {
+        var loudestClipValue: Float = 0.0
+        var quietestClipValue = noiseFloorDecibelCutoff
+        var zeroDbEquivalent: Float = Float(Int16.max)
+        let samplesToProcess = vDSP_Length(count)
+
+        var buffer = [Float](repeating: 0.0, count: count)
+        vDSP_vflt16(pointer, vDSP_Stride(stride), &buffer, 1, samplesToProcess)
+        vDSP_vabs(buffer, 1, &buffer, 1, samplesToProcess)
+        vDSP_vdbcon(buffer, 1, &zeroDbEquivalent, &buffer, 1, samplesToProcess, 1)
+        vDSP_vclip(buffer, 1, &quietestClipValue, &loudestClipValue, &buffer, 1, samplesToProcess)
+
+        let filter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)
+        let downSampledLength = count / samplesPerPixel
+        var downSampled = [Float](repeating: 0.0, count: downSampledLength)
+        vDSP_desamp(buffer, vDSP_Stride(samplesPerPixel), filter, &downSampled, vDSP_Length(downSampledLength), vDSP_Length(samplesPerPixel))
+        return downSampled
     }
 
     private func process(_ sampleBuffer: Data, samplesPerFFT: Int, fftBands: Int) -> [TempiFFT] {
@@ -232,8 +319,17 @@ fileprivate extension WaveformAnalyzer {
     func normalize(_ samples: [Float]) -> [Float] {
         samples.map { $0 / noiseFloorDecibelCutoff }
     }
+    
+    private func channelInfo(from assetReader: AVAssetReader) -> (channelCount: Int, basicDescription: AudioStreamBasicDescription)? {
+        guard let trackOutput = assetReader.outputs.first as? AVAssetReaderTrackOutput,
+              let formatDescription = (trackOutput.track.formatDescriptions as? [CMFormatDescription])?.first,
+              let basicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) else {
+            return nil
+        }
+        return (Int(basicDescription.pointee.mChannelsPerFrame), basicDescription.pointee)
+    }
 
-    private func totalSamples(of audioAssetTrack: AVAssetTrack) async throws -> Int {
+    private func totalSamples(of audioAssetTrack: AVAssetTrack, channelSelection: Waveform.ChannelSelection) async throws -> Int {
         var totalSamples = 0
         let (descriptions, timeRange) = try await audioAssetTrack.load(.formatDescriptions, .timeRange)
 
@@ -241,7 +337,16 @@ fileprivate extension WaveformAnalyzer {
             guard let basicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) else { return }
             let channelCount = Int(basicDescription.pointee.mChannelsPerFrame)
             let sampleRate = basicDescription.pointee.mSampleRate
-            totalSamples = Int(sampleRate * timeRange.duration.seconds) * channelCount
+            let oneChannelSamples = Int(sampleRate * timeRange.duration.seconds)
+
+            switch channelSelection {
+            case .merged:
+                // The interleaved buffer is treated as a single stream — count every Int16.
+                totalSamples = oneChannelSamples * channelCount
+            case .specific, .stereo:
+                // We process per-channel, so `samplesPerPixel` is derived from one channel's count.
+                totalSamples = oneChannelSamples
+            }
         }
         return totalSamples
     }
@@ -250,7 +355,8 @@ fileprivate extension WaveformAnalyzer {
 // MARK: - Configuration
 
 private extension WaveformAnalyzer {
-    func outputSettings() -> [String: Any] {
+    func outputSettings(channelSelection: Waveform.ChannelSelection) -> [String: Any] {
+        // Always use interleaved format - it's simpler to work with
         return [
             AVFormatIDKey: kAudioFormatLinearPCM,
             AVLinearPCMBitDepthKey: 16,

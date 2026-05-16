@@ -5,11 +5,72 @@ import CoreGraphics
  Draws a linear 2D amplitude envelope of the samples provided.
 
  Default `WaveformRenderer` used. Can be customized further via the configuration `Waveform.Style`.
+
+ When constructed with `channelSelection: .stereo`, the renderer pulls samples laid out as
+ `[allLeft..., allRight...]` and draws the left channel in the top half (extending upward from
+ the midline) and the right channel in the bottom half (extending downward) — a single,
+ self-contained stereo waveform image. The `sides` parameter is ignored in stereo mode.
  */
-public struct LinearWaveformRenderer: WaveformRenderer {
-    public init() {}
+public struct LinearWaveformRenderer: ChannelAwareWaveformRenderer {
+    /**
+     Which side(s) of the centerline the envelope occupies. Ignored when `channelSelection == .stereo`.
+     - `.both`: standard mirrored waveform (default).
+     - `.up`: only the half above the centerline.
+     - `.down`: only the half below the centerline.
+
+     For `.striped` style, each stripe is drawn as a half-stripe from the centerline outward instead of a full top-to-bottom line.
+     */
+    public enum Sides: Sendable {
+        case up, down, both
+    }
+
+    private let sides: Sides
+    public let channelSelection: Waveform.ChannelSelection
+
+    /// Standard single-waveform renderer. For stereo two-channel rendering use `.stereo` instead.
+    public init(sides: Sides = .both, channelSelection: Waveform.SingleChannelSelection = .merged) {
+        self.sides = sides
+        self.channelSelection = channelSelection.asChannelSelection
+    }
+
+    /// Internal init used by the `.stereo` factory. Not exposed publicly so the type system enforces
+    /// that callers use the dedicated factory for stereo rendering.
+    private init(stereoSides: Sides) {
+        self.sides = stereoSides
+        self.channelSelection = .stereo
+    }
+
+    /// Renderer that interprets samples as `[allLeft..., allRight...]` (the layout produced by
+    /// `Waveform.ChannelSelection.stereo`) and draws the left channel in the top half above the
+    /// centerline and the right channel in the bottom half below — a single, self-contained stereo
+    /// image.
+    public static let stereo: LinearWaveformRenderer = LinearWaveformRenderer(stereoSides: .both)
 
     public func path(samples: [Float], with configuration: Waveform.Configuration, lastOffset: Int, position: Waveform.Position = .middle) -> CGPath {
+        guard channelSelection == .stereo else {
+            return envelopePath(samples: samples, with: configuration, lastOffset: lastOffset, position: position, sides: sides)
+        }
+
+        // Stereo: samples come in as [allLeft..., allRight...]. Render the left half with `.up` so it
+        // fills the top of the canvas, and the right half with `.down` so it fills the bottom — both
+        // sharing the centerline. The user-provided `sides` is intentionally ignored here.
+        let halfCount = samples.count / 2
+        guard halfCount > 0 else { return CGMutablePath() }
+        let leftSamples = Array(samples[0..<halfCount])
+        let rightSamples = Array(samples[halfCount..<samples.count])
+
+        let combined = CGMutablePath()
+        combined.addPath(envelopePath(samples: leftSamples, with: configuration, lastOffset: lastOffset, position: position, sides: .up))
+        combined.addPath(envelopePath(samples: rightSamples, with: configuration, lastOffset: lastOffset, position: position, sides: .down))
+        return combined
+    }
+
+    public func render(samples: [Float], on context: CGContext, with configuration: Waveform.Configuration, lastOffset: Int, position: Waveform.Position = .middle) {
+        context.addPath(path(samples: samples, with: configuration, lastOffset: lastOffset, position: position))
+        defaultStyle(context: context, with: configuration)
+    }
+
+    private func envelopePath(samples: [Float], with configuration: Waveform.Configuration, lastOffset: Int, position: Waveform.Position, sides: Sides) -> CGPath {
         let graphRect = CGRect(origin: CGPoint.zero, size: configuration.size)
         let positionAdjustedGraphCenter = position.offset() * graphRect.size.height
         let samplesNeeded = Int(configuration.size.width * configuration.scale)
@@ -23,19 +84,28 @@ public struct LinearWaveformRenderer: WaveformRenderer {
         path.move(to: CGPoint(x: xOffset, y: positionAdjustedGraphCenter))
 
         if case .striped = configuration.style {
-            path = draw(samples: samples, path: path, with: configuration, lastOffset: lastOffset, sides: .both, position: position)
+            // Each stripe is its own move+line subpath; `sides` controls whether the stripe spans
+            // both halves (`.both`) or only one half from the centerline outward.
+            path = draw(samples: samples, path: path, with: configuration, lastOffset: lastOffset, sides: sides, position: position)
         } else {
-            path = draw(samples: samples, path: path, with: configuration, lastOffset: lastOffset, sides: .up, position: position)
-            path = draw(samples: samples.reversed(), path: path, with: configuration, lastOffset: lastOffset, sides: .down, position: position)
+            switch sides {
+            case .up:
+                path = draw(samples: samples, path: path, with: configuration, lastOffset: lastOffset, sides: .up, position: position)
+                // Close the polygon along the right edge and then back along the centerline.
+                path.addLine(to: CGPoint(x: configuration.size.width, y: positionAdjustedGraphCenter))
+            case .down:
+                // Extend along the centerline first so the .down envelope's first segment is a clean
+                // vertical drop at the right edge (rather than a long diagonal across the canvas).
+                path.addLine(to: CGPoint(x: configuration.size.width, y: positionAdjustedGraphCenter))
+                path = draw(samples: samples.reversed(), path: path, with: configuration, lastOffset: lastOffset, sides: .down, position: position)
+            case .both:
+                path = draw(samples: samples, path: path, with: configuration, lastOffset: lastOffset, sides: .up, position: position)
+                path = draw(samples: samples.reversed(), path: path, with: configuration, lastOffset: lastOffset, sides: .down, position: position)
+            }
         }
 
         path.closeSubpath()
         return path
-    }
-
-    public func render(samples: [Float], on context: CGContext, with configuration: Waveform.Configuration, lastOffset: Int, position: Waveform.Position = .middle) {
-        context.addPath(path(samples: samples, with: configuration, lastOffset: lastOffset, position: position))
-        defaultStyle(context: context, with: configuration)
     }
 
     private func stripeBucket(_ configuration: Waveform.Configuration) -> Int {
@@ -46,26 +116,28 @@ public struct LinearWaveformRenderer: WaveformRenderer {
         }
     }
 
-    enum Sides {
-        case up, down, both
-    }
-
     private func draw(samples: [Float], path: CGMutablePath, with configuration: Waveform.Configuration, lastOffset: Int, sides: Sides, position: Waveform.Position = .middle) -> CGMutablePath {
         let graphRect = CGRect(origin: CGPoint.zero, size: configuration.size)
         let positionAdjustedGraphCenter = position.offset() * graphRect.size.height
         let drawMappingFactor = graphRect.size.height * configuration.verticalScalingFactor
         let minimumGraphAmplitude: CGFloat = 1 / configuration.scale // we want to see at least a 1px line for silence
+        let isStriped: Bool = { if case .striped = configuration.style { return true } else { return false } }()
         var lastXPos: CGFloat = 0
 
         for (index, sample) in samples.enumerated() {
             let adjustedIndex: Int
-            switch sides {
-            case .up, .both: adjustedIndex = index
-            case .down: adjustedIndex = samples.count - index
+            // For non-striped + .down we reverse the iteration direction so the bottom envelope traverses
+            // right-to-left, which lets it connect into the upper envelope's last point for `.both`.
+            // For striped, each stripe is its own subpath so direction is irrelevant — keep natural order
+            // so samples passed in unreversed land at their natural x positions.
+            if !isStriped && sides == .down {
+                adjustedIndex = samples.count - index
+            } else {
+                adjustedIndex = index
             }
 
             var x = adjustedIndex + lastOffset
-            if case .striped = configuration.style, x % Int(configuration.scale) != 0 || x % stripeBucket(configuration) != 0 {
+            if isStriped, x % Int(configuration.scale) != 0 || x % stripeBucket(configuration) != 0 {
                 // skip sub-pixels - any x value not scale aligned
                 // skip any point that is not a multiple of our bucket width (width + spacing)
                 continue
@@ -85,9 +157,17 @@ public struct LinearWaveformRenderer: WaveformRenderer {
 
             switch sides {
             case .up:
+                // Striped: each stripe is its own move+line from centerline to the upper envelope.
+                // Non-striped: extend the running envelope line up.
+                if isStriped {
+                    path.move(to: CGPoint(x: xPos, y: positionAdjustedGraphCenter))
+                }
                 path.addLine(to: CGPoint(x: xPos, y: drawingAmplitudeUp))
 
             case .down:
+                if isStriped {
+                    path.move(to: CGPoint(x: xPos, y: positionAdjustedGraphCenter))
+                }
                 path.addLine(to: CGPoint(x: xPos, y: drawingAmplitudeDown))
 
             case .both:
@@ -96,7 +176,7 @@ public struct LinearWaveformRenderer: WaveformRenderer {
             }
         }
 
-        if case .striped = configuration.style {
+        if isStriped {
             path.move(to: CGPoint(x: lastXPos, y: positionAdjustedGraphCenter))
         }
 

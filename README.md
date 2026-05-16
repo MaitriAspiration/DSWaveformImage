@@ -162,6 +162,62 @@ let samples = try await waveformAnalyzer.samples(fromAudioAt: audioURL, count: 2
 print("samples: \(samples)")
 ```
 
+### Multi-Channel (Stereo) Support
+
+Channel selection lives on the renderer — the renderer decides which channel(s) of the audio it interprets. `Waveform.Configuration` stays purely about visual styling.
+
+```swift
+let audioURL = Bundle.main.url(forResource: "example_stereo", withExtension: "m4a")!
+let waveformImageDrawer = WaveformImageDrawer()
+
+// Render left channel only (channel 0)
+let leftChannelImage = try await waveformImageDrawer.waveformImage(
+    fromAudioAt: audioURL,
+    with: .init(size: waveformView.bounds.size, style: .filled(.blue)),
+    renderer: LinearWaveformRenderer(channelSelection: .specific(0))
+)
+
+// Render right channel only (channel 1)
+let rightChannelImage = try await waveformImageDrawer.waveformImage(
+    fromAudioAt: audioURL,
+    with: .init(size: waveformView.bounds.size, style: .filled(.red)),
+    renderer: LinearWaveformRenderer(channelSelection: .specific(1))
+)
+
+// Render both stereo channels in one image (left on top, right on bottom)
+let stereoImage = try await waveformImageDrawer.waveformImage(
+    fromAudioAt: audioURL,
+    with: .init(size: waveformView.bounds.size, style: .gradient([.blue, .cyan])),
+    renderer: LinearWaveformRenderer.stereo
+)
+
+// All channels merged is the default; no extra parameter needed
+let mergedImage = try await waveformImageDrawer.waveformImage(
+    fromAudioAt: audioURL,
+    with: .init(size: waveformView.bounds.size, style: .filled(.black))
+)
+```
+
+If you're calling `WaveformAnalyzer` directly (to get raw samples for your own visualization), pass `channelSelection` there:
+
+```swift
+let waveformAnalyzer = WaveformAnalyzer()
+
+// Get samples for left channel only
+let leftSamples = try await waveformAnalyzer.samples(
+    fromAudioAt: audioURL,
+    count: 200,
+    channelSelection: .specific(0)
+)
+
+// Get [allLeft..., allRight...] for stereo rendering
+let stereoSamples = try await waveformAnalyzer.samples(
+    fromAudioAt: audioURL,
+    count: 200,
+    channelSelection: .stereo
+)
+```
+
 ### Playback Progress Indication
 
 If you're playing back audio files and would like to indicate the playback progress to your users, you can [find inspiration in the example app](https://github.com/dmrschmidt/DSWaveformImage/blob/main/Example/DSWaveformImageExample-iOS/ProgressViewController.swift). UIKit and [SwiftUI](https://github.com/dmrschmidt/DSWaveformImage/blob/main/Example/DSWaveformImageExample-iOS/SwiftUIExample/ProgressWaveformView.swift) examples are provided.

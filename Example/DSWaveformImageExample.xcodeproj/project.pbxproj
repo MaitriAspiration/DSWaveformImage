@@ -30,6 +30,12 @@
 		C39A111928E2EBAD004AB185 /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = C39A111828E2EBAD004AB185 /* DSWaveformImage */; };
 		C39A111B28E2EBAD004AB185 /* DSWaveformImageViews in Frameworks */ = {isa = PBXBuildFile; productRef = C39A111A28E2EBAD004AB185 /* DSWaveformImageViews */; };
 		C39A111C28E2EC50004AB185 /* example_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C39A10F428E2E77F004AB185 /* example_sound.m4a */; };
+		8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
+		7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
+		03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
+		F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
+		0C4F101C6DE441D183707BBA /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
+		14364ADD13D4468397C7CB77 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
 		C3C83AC72A0BECBD00DF02F2 /* ProgressViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C83AC62A0BECBD00DF02F2 /* ProgressViewController.swift */; };
 		C3C83AC92A0C050900DF02F2 /* ProgressWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C83AC82A0C050900DF02F2 /* ProgressWaveformView.swift */; };
 		C3D671EF28E2E61F006C022D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D671EE28E2E61F006C022D /* AppDelegate.swift */; };
@@ -56,6 +62,8 @@
 		C39A10FC28E2E91E004AB185 /* RecordingIndicatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingIndicatorView.swift; sourceTree = "<group>"; };
 		C39A10FD28E2E91E004AB185 /* SwiftUIExampleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftUIExampleView.swift; sourceTree = "<group>"; };
 		C39A110128E2E98A004AB185 /* example_sound_2.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_sound_2.m4a; sourceTree = "<group>"; };
+		E864759A998641BAAB3AB0D1 /* example_stereo.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_stereo.m4a; sourceTree = "<group>"; };
+		7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformGalleryView.swift; sourceTree = "<group>"; };
 		C39A110728E2EABF004AB185 /* DSWaveformImageExample-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DSWaveformImageExample-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C39A110928E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSWaveformImageExample_macOSApp.swift; sourceTree = "<group>"; };
 		C39A110B28E2EABF004AB185 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -168,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				C3D6720228E2E711006C022D /* Packages */,
+				5101E89623D042CF9CB14546 /* Shared */,
 				C3D671ED28E2E61F006C022D /* DSWaveformImageExample-iOS */,
 				C39A110828E2EABF004AB185 /* DSWaveformImageExample-macOS */,
 				A96F71982AE02BB1007ED383 /* DSWaveformImageExample-VisionOS */,
@@ -194,6 +203,7 @@
 				C39A10F028E2E77E004AB185 /* DSWaveformImageExample-iOS-Bridging-Header.h */,
 				C39A110128E2E98A004AB185 /* example_sound_2.m4a */,
 				C39A10F428E2E77F004AB185 /* example_sound.m4a */,
+				E864759A998641BAAB3AB0D1 /* example_stereo.m4a */,
 				C3D671FC28E2E61F006C022D /* Info.plist */,
 				C3D671F928E2E61F006C022D /* LaunchScreen.storyboard */,
 				C3D671F428E2E61F006C022D /* Main.storyboard */,
@@ -214,6 +224,14 @@
 				C3D6720328E2E711006C022D /* DSWaveformImage */,
 			);
 			name = Packages;
+			sourceTree = "<group>";
+		};
+		5101E89623D042CF9CB14546 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -330,6 +348,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A96F71AD2AE02CF4007ED383 /* example_sound.m4a in Resources */,
+				03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */,
 				A96F71A42AE02BB2007ED383 /* Preview Assets.xcassets in Resources */,
 				A96F71A12AE02BB2007ED383 /* Assets.xcassets in Resources */,
 			);
@@ -340,6 +359,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C39A111C28E2EC50004AB185 /* example_sound.m4a in Resources */,
+				8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */,
 				C39A111128E2EAC0004AB185 /* Preview Assets.xcassets in Resources */,
 				C39A110E28E2EAC0004AB185 /* Assets.xcassets in Resources */,
 			);
@@ -353,6 +373,7 @@
 				C3D671FB28E2E61F006C022D /* LaunchScreen.storyboard in Resources */,
 				C3D671F828E2E61F006C022D /* Assets.xcassets in Resources */,
 				C39A10F828E2E77F004AB185 /* example_sound.m4a in Resources */,
+				7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */,
 				C3D671F628E2E61F006C022D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -366,6 +387,7 @@
 			files = (
 				A96F719F2AE02BB1007ED383 /* ContentView.swift in Sources */,
 				A96F719D2AE02BB1007ED383 /* DSWaveformImageExample_VisionOSApp.swift in Sources */,
+				14364ADD13D4468397C7CB77 /* WaveformGalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +397,7 @@
 			files = (
 				C39A110C28E2EABF004AB185 /* ContentView.swift in Sources */,
 				C39A110A28E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift in Sources */,
+				0C4F101C6DE441D183707BBA /* WaveformGalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,6 +414,7 @@
 				C3C83AC92A0C050900DF02F2 /* ProgressWaveformView.swift in Sources */,
 				C39A110028E2E91E004AB185 /* SwiftUIExampleView.swift in Sources */,
 				C39A10FE28E2E91E004AB185 /* SwiftUIExample.swift in Sources */,
+				F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */,
 				C3D671F128E2E61F006C022D /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

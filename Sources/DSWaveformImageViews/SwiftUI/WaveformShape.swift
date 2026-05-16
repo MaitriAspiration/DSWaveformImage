@@ -4,6 +4,11 @@ import DSWaveformImage
 
 /// A waveform SwiftUI `Shape` object for generating a shape path from component(s) of the waveform.
 /// **Note:** The Shape does *not* style itself. Use `WaveformView` for that purpose and only use the Shape directly if needed.
+///
+/// If `renderer` is a `ChannelAwareWaveformRenderer` with a non-`.merged` selection, the caller is
+/// responsible for providing `samples` in the matching layout (e.g. `[allLeft..., allRight...]` for
+/// `.stereo`). The Shape only renders; it cannot re-sample the audio. `WaveformView` handles this
+/// automatically — prefer it when working from an `audioURL`.
 @available(iOS 15.0, macOS 12.0, *)
 public struct WaveformShape: Shape {
     private let samples: [Float]
@@ -21,6 +26,13 @@ public struct WaveformShape: Shape {
     }
 
     public func path(in rect: CGRect) -> Path {
+        // Debug-only sanity check: stereo expects an even-length sample array (one half per channel).
+        // We can't verify content correctness here — that's on the caller — but an odd count is
+        // unambiguously wrong and easy to catch.
+        if let channelAware = renderer as? ChannelAwareWaveformRenderer, channelAware.channelSelection == .stereo {
+            assert(samples.count % 2 == 0, "WaveformShape: a `.stereo` renderer expects samples laid out as [allLeft..., allRight...] (even length). Got \(samples.count).")
+        }
+
         let size = CGSize(width: rect.maxX, height: rect.maxY)
         let dampedSamples = configuration.shouldDamp ? damp(samples, with: configuration) : samples
         let path = renderer.path(samples: dampedSamples, with: configuration.with(size: size), lastOffset: 0)
