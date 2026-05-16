@@ -7,7 +7,7 @@ struct DefaultShapeStyler {
     func style(shape: WaveformShape, with configuration: Waveform.Configuration) -> some View {
         switch configuration.style {
         case let .filled(color):
-            shape.fill(Color(color))
+            shape.fill(Color(color), style: shape.fillStyle)
 
         case let .outlined(color, lineWidth):
             shape.stroke(
@@ -20,7 +20,10 @@ struct DefaultShapeStyler {
 
         case let .gradient(colors):
             shape
-                .fill(LinearGradient(colors: colors.map(Color.init), startPoint: .bottom, endPoint: .top))
+                .fill(
+                    LinearGradient(colors: colors.map(Color.init), startPoint: .bottom, endPoint: .top),
+                    style: shape.fillStyle
+                )
 
         case let .gradientOutlined(colors, lineWidth):
             shape.stroke(

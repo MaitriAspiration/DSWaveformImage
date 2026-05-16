@@ -44,6 +44,14 @@ public struct WaveformShape: Shape {
     var isEmpty: Bool {
         samples.isEmpty
     }
+
+    /// SwiftUI fill style this shape's path expects. Uses even-odd when the renderer's path is
+    /// built from multiple subpaths that need region subtraction (e.g. `CircularWaveformRenderer`
+    /// in `.ring` kind). Defaults to non-zero for everyone else.
+    public var fillStyle: FillStyle {
+        let eoFill = (renderer as? CircularWaveformRenderer)?.prefersEvenOddFillRule ?? false
+        return FillStyle(eoFill: eoFill)
+    }
 }
 
 private extension WaveformShape {
