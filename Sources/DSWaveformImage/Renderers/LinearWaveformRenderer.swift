@@ -27,10 +27,24 @@ public struct LinearWaveformRenderer: ChannelAwareWaveformRenderer {
     private let sides: Sides
     public let channelSelection: Waveform.ChannelSelection
 
-    public init(sides: Sides = .both, channelSelection: Waveform.ChannelSelection = .merged) {
+    /// Standard single-waveform renderer. For stereo two-channel rendering use `.stereo` instead.
+    public init(sides: Sides = .both, channelSelection: Waveform.SingleChannelSelection = .merged) {
         self.sides = sides
-        self.channelSelection = channelSelection
+        self.channelSelection = channelSelection.asChannelSelection
     }
+
+    /// Internal init used by the `.stereo` factory. Not exposed publicly so the type system enforces
+    /// that callers use the dedicated factory for stereo rendering.
+    private init(stereoSides: Sides) {
+        self.sides = stereoSides
+        self.channelSelection = .stereo
+    }
+
+    /// Renderer that interprets samples as `[allLeft..., allRight...]` (the layout produced by
+    /// `Waveform.ChannelSelection.stereo`) and draws the left channel in the top half above the
+    /// centerline and the right channel in the bottom half below — a single, self-contained stereo
+    /// image.
+    public static let stereo: LinearWaveformRenderer = LinearWaveformRenderer(stereoSides: .both)
 
     public func path(samples: [Float], with configuration: Waveform.Configuration, lastOffset: Int, position: Waveform.Position = .middle) -> CGPath {
         guard channelSelection == .stereo else {

@@ -167,7 +167,7 @@ print("samples: \(samples)")
 Channel selection lives on the renderer — the renderer decides which channel(s) of the audio it interprets. `Waveform.Configuration` stays purely about visual styling.
 
 ```swift
-let audioURL = Bundle.main.url(forResource: "stereo_sound", withExtension: "m4a")!
+let audioURL = Bundle.main.url(forResource: "example_stereo", withExtension: "m4a")!
 let waveformImageDrawer = WaveformImageDrawer()
 
 // Render left channel only (channel 0)
@@ -188,7 +188,7 @@ let rightChannelImage = try await waveformImageDrawer.waveformImage(
 let stereoImage = try await waveformImageDrawer.waveformImage(
     fromAudioAt: audioURL,
     with: .init(size: waveformView.bounds.size, style: .gradient([.blue, .cyan])),
-    renderer: LinearWaveformRenderer(channelSelection: .stereo)
+    renderer: LinearWaveformRenderer.stereo
 )
 
 // All channels merged is the default; no extra parameter needed

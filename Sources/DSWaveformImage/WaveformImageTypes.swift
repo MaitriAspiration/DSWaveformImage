@@ -90,11 +90,27 @@ public enum Waveform {
 
         /// Returns samples for both stereo channels concatenated as `[allLeft..., allRight...]`.
         ///
-        /// Use with `LinearWaveformRenderer(channelSelection: .stereo)`, which interprets the layout
-        /// as left-on-top / right-on-bottom. Call `WaveformAnalyzer.samples(...)` with this case
-        /// directly only if you intend to consume the raw L/R sample array yourself. For non-stereo
-        /// (mono) input the single channel is mirrored into both halves.
+        /// Renderer usage: construct via `LinearWaveformRenderer.stereo`, which splits the
+        /// concatenated samples and draws left on top / right on bottom. Call
+        /// `WaveformAnalyzer.samples(...)` with this case directly only if you intend to consume the
+        /// raw L/R sample array yourself. For non-stereo (mono) input the single channel is mirrored
+        /// into both halves.
         case stereo
+    }
+
+    /// Subset of `ChannelSelection` that produces a single waveform's worth of samples. This is what
+    /// `LinearWaveformRenderer`'s init accepts — `.stereo` is constructed via the dedicated
+    /// `LinearWaveformRenderer.stereo` factory instead.
+    public enum SingleChannelSelection: Equatable, Sendable {
+        case merged
+        case specific(Int)
+
+        var asChannelSelection: ChannelSelection {
+            switch self {
+            case .merged: return .merged
+            case .specific(let index): return .specific(index)
+            }
+        }
     }
     
     /** Position of the drawn waveform. */

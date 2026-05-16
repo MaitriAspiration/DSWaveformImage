@@ -33,7 +33,7 @@ struct ContentView: View {
                 WaveformView(
                     audioURL: audioURL,
                     configuration: configuration,
-                    renderer: LinearWaveformRenderer(channelSelection: .stereo)
+                    renderer: LinearWaveformRenderer.stereo
                 )
                 .padding()
             } else {

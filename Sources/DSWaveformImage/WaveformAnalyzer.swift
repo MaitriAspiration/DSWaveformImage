@@ -18,7 +18,15 @@ struct WaveformAnalysis {
 
 /// Calculates the waveform of the initialized asset URL.
 public struct WaveformAnalyzer: Sendable {
-    public enum AnalyzeError: Error { case generic, userError, emptyTracks, readerError(AVAssetReader.Status) }
+    public enum AnalyzeError: Error {
+        case generic
+        case userError
+        case emptyTracks
+        case readerError(AVAssetReader.Status)
+        /// The `channelSelection: .specific(index)` requested a channel that doesn't exist on the audio track.
+        /// `available` is the actual channel count of the track.
+        case invalidChannelIndex(requested: Int, available: Int)
+    }
 
     /// Everything below this noise floor cutoff will be clipped and interpreted as silence. Default is `-50.0`.
     public var noiseFloorDecibelCutoff: Float = -50.0
@@ -27,7 +35,9 @@ public struct WaveformAnalyzer: Sendable {
 
     /// Calculates the amplitude envelope of the initialized audio asset URL, downsampled to the required `count` amount of samples.
     /// - Parameter fromAudioAt: local filesystem URL of the audio file to process.
-    /// - Parameter count: amount of samples to be calculated. Downsamples.
+    /// - Parameter count: amount of samples to be calculated **per rendered channel slot**. For `.merged`
+    ///   and `.specific` this is the total length of the returned array; for `.stereo` the result is
+    ///   `count * 2` (left samples followed by right samples).
     /// - Parameter channelSelection: which channel(s) to extract. Default is `.merged` (all channels combined).
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
     public func samples(fromAudioAt audioAssetURL: URL, count: Int, channelSelection: Waveform.ChannelSelection = .merged, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
@@ -39,7 +49,9 @@ public struct WaveformAnalyzer: Sendable {
 
     /// Calculates the amplitude envelope of the initialized audio asset, downsampled to the required `count` amount of samples.
     /// - Parameter audioAsset: asset of the audio file to process.
-    /// - Parameter count: amount of samples to be calculated. Downsamples.
+    /// - Parameter count: amount of samples to be calculated **per rendered channel slot**. For `.merged`
+    ///   and `.specific` this is the total length of the returned array; for `.stereo` the result is
+    ///   `count * 2` (left samples followed by right samples).
     /// - Parameter channelSelection: which channel(s) to extract. Default is `.merged` (all channels combined).
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
     public func samples(fromAsset audioAsset: AVAsset, count: Int, channelSelection: Waveform.ChannelSelection = .merged, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
@@ -98,6 +110,12 @@ fileprivate extension WaveformAnalyzer {
 
         let trackOutput = AVAssetReaderTrackOutput(track: audioAssetTrack, outputSettings: outputSettings(channelSelection: channelSelection))
         assetReader.add(trackOutput)
+
+        if case .specific(let channelIndex) = channelSelection,
+           let info = channelInfo(from: assetReader),
+           channelIndex < 0 || channelIndex >= info.channelCount {
+            throw AnalyzeError.invalidChannelIndex(requested: channelIndex, available: info.channelCount)
+        }
 
         let totalSamples = try await totalSamples(of: audioAssetTrack, channelSelection: channelSelection)
         let analysis = extract(totalSamples, downsampledTo: requiredNumberOfSamples, from: assetReader, channelSelection: channelSelection, fftBands: fftBands)

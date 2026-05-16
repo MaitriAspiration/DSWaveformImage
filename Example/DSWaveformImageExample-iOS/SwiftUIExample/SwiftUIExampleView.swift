@@ -165,7 +165,7 @@ struct SwiftUIExampleView: View {
                     // Multi-channel examples
                     WaveformView(audioURL: audioURL, configuration: .init(style: .filled(.blue)), renderer: LinearWaveformRenderer(channelSelection: .specific(0)))
                     WaveformView(audioURL: audioURL, configuration: .init(style: .filled(.red)), renderer: LinearWaveformRenderer(channelSelection: .specific(1)))
-                    WaveformView(audioURL: audioURL, configuration: .init(style: .gradient([.blue, .cyan])), renderer: LinearWaveformRenderer(channelSelection: .stereo))
+                    WaveformView(audioURL: audioURL, configuration: .init(style: .gradient([.blue, .cyan])), renderer: LinearWaveformRenderer.stereo)
 
                     WaveformView(audioURL: audioURL, configuration: .init(style: .striped(.init(color: .black)))) { shape in
                         shape // override the shape styling
