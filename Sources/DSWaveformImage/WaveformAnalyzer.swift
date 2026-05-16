@@ -96,7 +96,7 @@ public struct WaveformAnalyzer: Sendable {
 
 // MARK: - Private
 
-fileprivate extension WaveformAnalyzer {
+internal extension WaveformAnalyzer {
     func waveformSamples(
             track audioAssetTrack: AVAssetTrack,
             reader assetReader: AVAssetReader,
@@ -147,58 +147,73 @@ fileprivate extension WaveformAnalyzer {
         let samplesPerPixel = max(1, totalSamples / targetSampleCount)
         let samplesPerFFT = 4096 // ~100ms at 44.1kHz, rounded to closest pow(2) for FFT
 
+        // `startReading()` throws an uncatchable ObjC exception if the reader isn't in `.unknown`
+        // (e.g. already cancelled or failed). Normal callers always pass a fresh reader, but bail
+        // gracefully if that contract is violated so we surface as `readerError` rather than crash.
+        guard assetReader.status == .unknown else {
+            return WaveformAnalysis(amplitudes: [], fft: outputFFT)
+        }
         assetReader.startReading()
         while assetReader.status == .reading {
-            let trackOutput = assetReader.outputs.first!
+            // CMSampleBuffer is a Core Foundation type that lives in the autorelease pool.
+            // Without an explicit drain per iteration, long files iterate thousands of times and
+            // can keep gigabytes of buffer memory pinned until the loop exits.
+            let continueReading = autoreleasepool { () -> Bool in
+                let trackOutput = assetReader.outputs.first!
 
-            guard let nextSampleBuffer = trackOutput.copyNextSampleBuffer(),
-                let blockBuffer = CMSampleBufferGetDataBuffer(nextSampleBuffer) else {
-                    break
+                guard let nextSampleBuffer = trackOutput.copyNextSampleBuffer(),
+                    let blockBuffer = CMSampleBufferGetDataBuffer(nextSampleBuffer) else {
+                        return false
+                }
+
+                var readBufferLength = 0
+                var readBufferPointer: UnsafeMutablePointer<Int8>? = nil
+                CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: &readBufferLength, totalLengthOut: nil, dataPointerOut: &readBufferPointer)
+                sampleBuffer.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
+                if fftBands != nil {
+                    // don't append data to this buffer unless we're going to use it.
+                    sampleBufferFFT.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
+                }
+                CMSampleBufferInvalidate(nextSampleBuffer)
+
+                let result = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, channelSelection: channelSelection)
+                leftSamples += result.left
+                rightSamples += result.right
+
+                if result.bytesConsumed > 0 {
+                    sampleBuffer.removeFirst(result.bytesConsumed)
+
+                    // this takes care of a memory leak where Memory continues to increase even though it should clear after calling .removeFirst(…) above.
+                    sampleBuffer = Data(sampleBuffer)
+                }
+
+                if let fftBands = fftBands, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
+                    let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, fftBands: fftBands)
+                    sampleBufferFFT.removeFirst(processedFFTs.count * samplesPerFFT * MemoryLayout<Int16>.size)
+                    outputFFT? += processedFFTs
+                }
+                return true
             }
-
-            var readBufferLength = 0
-            var readBufferPointer: UnsafeMutablePointer<Int8>? = nil
-            CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: &readBufferLength, totalLengthOut: nil, dataPointerOut: &readBufferPointer)
-            sampleBuffer.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
-            if fftBands != nil {
-                // don't append data to this buffer unless we're going to use it.
-                sampleBufferFFT.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
-            }
-            CMSampleBufferInvalidate(nextSampleBuffer)
-
-            let result = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, channelSelection: channelSelection)
-            leftSamples += result.left
-            rightSamples += result.right
-
-            if result.bytesConsumed > 0 {
-                sampleBuffer.removeFirst(result.bytesConsumed)
-
-                // this takes care of a memory leak where Memory continues to increase even though it should clear after calling .removeFirst(…) above.
-                sampleBuffer = Data(sampleBuffer)
-            }
-
-            if let fftBands = fftBands, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
-                let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, fftBands: fftBands)
-                sampleBufferFFT.removeFirst(processedFFTs.count * samplesPerFFT * MemoryLayout<Int16>.size)
-                outputFFT? += processedFFTs
-            }
+            if !continueReading { break }
         }
 
-        // if we don't have enough pixels yet,
-        // process leftover samples with padding (to reach multiple of samplesPerPixel for vDSP_desamp)
-        if leftSamples.count < targetSampleCount {
-            // each output sample for a single rendered "channel" consumes `samplesPerPixel * inputUnitsPerOutputSample`
-            // Int16s from the interleaved buffer.
-            let channelCount = channelInfo(from: assetReader)?.channelCount ?? 1
-            let inputUnitsPerOutputSample = (channelSelection == .merged) ? 1 : channelCount
-            let missingSampleCount = (targetSampleCount - leftSamples.count) * samplesPerPixel * inputUnitsPerOutputSample
-            let backfillPaddingSampleCount = max(0, missingSampleCount - (sampleBuffer.count / MemoryLayout<Int16>.size))
-            let backfillPaddingByteCount = backfillPaddingSampleCount * MemoryLayout<Int16>.size
-            let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingByteCount)
-            sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingByteCount)
-            let result = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, channelSelection: channelSelection)
-            leftSamples += result.left
-            rightSamples += result.right
+        // Pad the *output* with silence-equivalent dB values when the read produced fewer samples
+        // than the target — e.g. a short tail or a reader that ended early (failed/cancelled after
+        // backgrounding). These become 1.0 (silence) after `normalize`. Allocation is
+        // O(targetSampleCount), independent of audio duration — the previous implementation padded
+        // the *input* buffer with up to `target × samplesPerPixel × 2` bytes of zeros, which
+        // crashed on multi-hour files (issue #93). We only pad on a clean read; a non-`.completed`
+        // status means `waveformSamples` will throw and the result is discarded anyway, so skip the
+        // wasted work.
+        if assetReader.status == .completed {
+            if leftSamples.count < targetSampleCount {
+                let missing = targetSampleCount - leftSamples.count
+                leftSamples.append(contentsOf: repeatElement(noiseFloorDecibelCutoff, count: missing))
+            }
+            if isStereo, rightSamples.count < targetSampleCount {
+                let missing = targetSampleCount - rightSamples.count
+                rightSamples.append(contentsOf: repeatElement(noiseFloorDecibelCutoff, count: missing))
+            }
         }
 
         let amplitudes: [Float]

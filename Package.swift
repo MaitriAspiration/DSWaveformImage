@@ -28,5 +28,9 @@ let package = Package(
             name: "DSWaveformImageViews",
             dependencies: ["DSWaveformImage"]
         ),
+        .testTarget(
+            name: "DSWaveformImageTests",
+            dependencies: ["DSWaveformImage"]
+        ),
     ]
 )
