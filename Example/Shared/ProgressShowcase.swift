@@ -26,25 +26,48 @@ public struct ProgressShowcase: View {
 private struct InteractiveScrubSection: View {
     private let url = SampleAudio.stereoDemo
     @State private var progress: Double = 0.35
+    @State private var isScrubbing: Bool = false
+    // Bumped each time progress crosses a 1% tick — drives selection haptics so the user feels
+    // discrete steps under the finger. The system de-duplicates ticks that fire too tightly, so
+    // fast drags stay smooth without manually rate-limiting here.
+    @State private var hapticTick: Int = 0
 
     var body: some View {
         GallerySection(
             "Scrub",
-            systemImage: "slider.horizontal.below.rectangle",
-            subtitle: "Drag the slider — only the foreground tint is masked. The underlying waveform stays static."
+            systemImage: "hand.draw",
+            subtitle: "Drag anywhere on the waveform — the progress tracks the finger's horizontal offset, with a soft spring on touch-down and lift."
         ) {
-            WaveformCard(caption: "WaveformView(audioURL: …) { shape in shape.fill(.…) }") {
-                VStack(spacing: 16) {
+            WaveformCard(caption: "DragGesture(minimumDistance: 0) → progress = location.x / width") {
+                GeometryReader { geometry in
                     ProgressWaveform(
                         audioURL: url,
                         progress: progress,
                         baseColor: .secondary,
                         progressColor: .accentColor
                     )
-                    .frame(height: 120)
-
-                    Slider(value: $progress, in: 0...1)
+                    .scaleEffect(isScrubbing ? 0.97 : 1.0)
+                    .animation(.spring(response: 0.32, dampingFraction: 0.55), value: isScrubbing)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                if !isScrubbing { isScrubbing = true }
+                                let clamped = min(1, max(0, value.location.x / geometry.size.width))
+                                let oldBucket = Int(progress * 100)
+                                let newBucket = Int(clamped * 100)
+                                if oldBucket != newBucket {
+                                    hapticTick &+= 1
+                                }
+                                progress = clamped
+                            }
+                            .onEnded { _ in
+                                isScrubbing = false
+                            }
+                    )
                 }
+                .frame(height: 120)
+                .modifier(SelectionHaptic(trigger: hapticTick))
             }
         }
     }
@@ -226,6 +249,22 @@ private struct ProgressWaveformStriped: View {
                     Rectangle().frame(width: geometry.size.width * progress)
                 }
             }
+        }
+    }
+}
+
+/// Gates `sensoryFeedback(.selection, trigger:)` to platforms that ship it. On older OSes the
+/// modifier is a no-op so the scrubber still works, just without the tick.
+@available(iOS 15.0, macOS 12.0, *)
+private struct SelectionHaptic: ViewModifier {
+    let trigger: Int
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            content.sensoryFeedback(.selection, trigger: trigger)
+        } else {
+            content
         }
     }
 }
