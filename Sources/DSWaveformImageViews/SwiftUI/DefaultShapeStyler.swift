@@ -42,6 +42,12 @@ struct DefaultShapeStyler {
                     lineCap: config.lineCap
                 )
             )
+
+        case let .spectralTint(low, _):
+            // `WaveformView` renders `.spectralTint` via its own Canvas path (so per-column tinting
+            // works), so this branch is only reached if a caller passes the styler a spectral-styled
+            // shape directly. Fall back to filling the envelope with `low` — degraded, but never blank.
+            shape.fill(Color(low), style: shape.fillStyle)
         }
     }
 }

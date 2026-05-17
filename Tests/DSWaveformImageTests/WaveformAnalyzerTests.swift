@@ -3,6 +3,75 @@ import XCTest
 @testable import DSWaveformImage
 
 final class WaveformAnalyzerTests: XCTestCase {
+
+    // MARK: - Spectral analysis
+
+    /// `analyze(...)` must return centroids parallel to amplitudes. Mismatched counts would silently
+    /// break any per-column visualization that zips them together.
+    func testAnalyzeReturnsCentroidsMatchingAmplitudeCount() async throws {
+        let url = try makeSineToneAudioFile(durationSeconds: 1, frequency: 1_000)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let analysis = try await WaveformAnalyzer().analyze(fromAudioAt: url, count: 200)
+        XCTAssertEqual(analysis.amplitudes.count, 200)
+        XCTAssertEqual(analysis.spectralCentroids.count, 200)
+    }
+
+    /// Silent input has no spectral content to weight; centroids should fall back to the neutral 0.5
+    /// rather than collapsing to either endpoint of a 2-color gradient.
+    func testAnalyzeCentroidsForSilenceFallBackToMidpoint() async throws {
+        let url = try makeSilentAudioFile(durationSeconds: 1)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let analysis = try await WaveformAnalyzer().analyze(fromAudioAt: url, count: 100)
+        XCTAssertEqual(analysis.spectralCentroids.count, 100)
+        for c in analysis.spectralCentroids {
+            XCTAssertEqual(c, 0.5, accuracy: 0.001)
+        }
+    }
+
+    /// A pure 200 Hz tone (near the bass end of the default 50 Hz–Nyquist log range) should produce
+    /// centroids well below the midpoint; a pure 8 kHz tone should produce centroids well above it.
+    /// This is the load-bearing assertion for the whole spectral-tint feature — if it fails, color
+    /// mapping won't match what the listener hears.
+    func testAnalyzeCentroidsTrackInputToneFrequency() async throws {
+        let lowURL = try makeSineToneAudioFile(durationSeconds: 1, frequency: 200)
+        defer { try? FileManager.default.removeItem(at: lowURL) }
+        let highURL = try makeSineToneAudioFile(durationSeconds: 1, frequency: 8_000)
+        defer { try? FileManager.default.removeItem(at: highURL) }
+
+        let lowAnalysis = try await WaveformAnalyzer().analyze(fromAudioAt: lowURL, count: 50)
+        let highAnalysis = try await WaveformAnalyzer().analyze(fromAudioAt: highURL, count: 50)
+
+        // Drop the first/last slot — FFT windowing can make edge frames noisy.
+        let lowMid = Array(lowAnalysis.spectralCentroids.dropFirst().dropLast())
+        let highMid = Array(highAnalysis.spectralCentroids.dropFirst().dropLast())
+        let lowAvg = lowMid.reduce(0, +) / Float(lowMid.count)
+        let highAvg = highMid.reduce(0, +) / Float(highMid.count)
+
+        XCTAssertLessThan(lowAvg, 0.4, "200 Hz tone should sit in the lower portion of the centroid range, got \(lowAvg)")
+        XCTAssertGreaterThan(highAvg, 0.6, "8 kHz tone should sit in the upper portion of the centroid range, got \(highAvg)")
+        XCTAssertLessThan(lowAvg, highAvg, "low-tone centroid must be below high-tone centroid")
+    }
+
+    /// End-to-end smoke test: a `.spectralTint`-styled waveform image renders without errors and
+    /// produces a non-empty bitmap. Doesn't assert exact pixel colors (that's brittle) — just that
+    /// the spectral pipeline goes all the way from audio file to image.
+    func testSpectralTintRendersImage() async throws {
+        let url = try makeSineToneAudioFile(durationSeconds: 1, frequency: 1_000)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let config = Waveform.Configuration(
+            size: CGSize(width: 200, height: 50),
+            style: .spectralTint(low: .red, high: .blue),
+            scale: 1
+        )
+        let image = try await WaveformImageDrawer().waveformImage(fromAudioAt: url, with: config)
+        XCTAssertGreaterThan(image.size.width, 0)
+        XCTAssertGreaterThan(image.size.height, 0)
+    }
+
+    // MARK: - Existing
     /// Defensive: `extract` previously called `startReading()` unconditionally, which throws an
     /// uncatchable ObjC exception when the reader isn't in `.unknown`. Normal callers always pass
     /// a fresh reader, but the guard prevents a future caller from triggering a hard crash.
@@ -24,7 +93,7 @@ final class WaveformAnalyzerTests: XCTestCase {
         reader.add(trackOutput)
         reader.cancelReading()
 
-        let analysis = WaveformAnalyzer().extract(44_100, downsampledTo: 100, from: reader, channelSelection: .merged, fftBands: nil)
+        let analysis = WaveformAnalyzer().extract(44_100, downsampledTo: 100, from: reader, channelSelection: .merged, fftConfig: nil)
         XCTAssertEqual(analysis.amplitudes, [], "extract on a non-fresh reader should bail with empty amplitudes")
     }
 
@@ -81,7 +150,7 @@ final class WaveformAnalyzerTests: XCTestCase {
                 downsampledTo: targetSampleCount,
                 from: reader,
                 channelSelection: .merged,
-                fftBands: nil
+                fftConfig: nil
             )
         }
 

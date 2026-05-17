@@ -77,6 +77,18 @@ public protocol ChannelAwareWaveformRenderer: WaveformRenderer {
     var channelSelection: Waveform.ChannelSelection { get }
 }
 
+/**
+ Opt-in protocol for renderers that can consume per-amplitude-sample spectral data (e.g. for
+ `Waveform.Style.spectralTint`). `WaveformImageDrawer` and `WaveformView` check for this conformance:
+ when the configured style requires spectral data, they call `WaveformAnalyzer.analyze(...)` to
+ compute centroids and call `withSpectralCentroids(_:)` to produce a new renderer instance with that
+ data attached before rendering. Renderers that don't conform are used unchanged — spectral styles
+ will fall back to a uniform color rendering.
+ */
+public protocol SpectralAwareWaveformRenderer: WaveformRenderer {
+    func withSpectralCentroids(_ centroids: [Float]) -> WaveformRenderer
+}
+
 public enum Waveform {
     /**
      Channel selection for rendering multi-channel audio.
@@ -173,6 +185,14 @@ public enum Waveform {
         case gradient([DSColor])
         case gradientOutlined([DSColor], CGFloat)
         case striped(StripeConfig)
+
+        /// Per-column color interpolated between `low` (low spectral centroid → bass-heavy slot) and
+        /// `high` (high centroid → treble-heavy slot). The amplitude envelope is preserved; only the
+        /// fill color of each column changes. Requires the renderer to be given spectral data —
+        /// `WaveformImageDrawer` and `WaveformView` handle this automatically, computing centroids via
+        /// `WaveformAnalyzer.analyze(...)` and attaching them via `SpectralAwareWaveformRenderer`.
+        /// Without spectral data attached, falls back to drawing a uniform `low`-colored envelope.
+        case spectralTint(low: DSColor, high: DSColor)
     }
 
     /**

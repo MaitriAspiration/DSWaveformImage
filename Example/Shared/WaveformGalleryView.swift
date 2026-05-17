@@ -20,6 +20,7 @@ public struct WaveformGalleryView: View {
                     PlaygroundSection()
                     RenderersSection()
                     StylesSection()
+                    SpectralSection()
                     ChannelsSection()
                     CustomShapeSection()
                     Spacer(minLength: 24)
@@ -66,6 +67,10 @@ enum WaveformGalleryStyle {
 private enum SampleAudio {
     /// Synthetic 6-second stereo clip: left = 3 long tone pulses (440 Hz), right = 6 short pulses (659 Hz).
     static let stereoDemo: URL = Bundle.main.url(forResource: "example_stereo", withExtension: "m4a")!
+
+    /// 12-second mixed-content clip with bass, mids, and highs — used by the spectral section so the
+    /// tint visibly sweeps across the gradient as the dominant frequency changes over time.
+    static let twelveSecondMix: URL = Bundle.main.url(forResource: "sample-12s", withExtension: "mp3")!
 }
 
 // MARK: - Hero
@@ -351,6 +356,53 @@ private struct StylesSection: View {
                     WaveformCard(entry.title, caption: entry.caption) {
                         WaveformView(audioURL: url, configuration: .init(style: entry.style, damping: .init(percentage: 0.125, sides: .both)))
                             .frame(height: 90)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Spectral gallery
+
+@available(iOS 15.0, macOS 12.0, *)
+private struct SpectralSection: View {
+    // The stereo demo only has two pure tones, which gives a flat tint. The 12-second mix has bass,
+    // mids, and highs spread over time so the color sweeps visibly across the gradient.
+    private let url = SampleAudio.twelveSecondMix
+
+    private struct Entry: Identifiable {
+        let id = UUID()
+        let title: String
+        let caption: String
+        let low: DSColor
+        let high: DSColor
+    }
+
+    private var entries: [Entry] {
+        [
+            .init(title: "Cool → warm", caption: ".spectralTint(low: .systemBlue, high: .systemRed)", low: .systemBlue, high: .systemRed),
+            .init(title: "Indigo → mint", caption: ".spectralTint(low: .systemIndigo, high: .systemMint)", low: .systemIndigo, high: .systemMint),
+        ]
+    }
+
+    var body: some View {
+        GallerySection(
+            "Spectral tint",
+            systemImage: "rainbow",
+            subtitle: "Colors each column by the spectral centroid at that moment — bass-heavy slots take the low color, treble-heavy slots take the high color. Same envelope, but the fill follows the audio's frequency content."
+        ) {
+            LazyVStack(spacing: 12) {
+                ForEach(entries) { entry in
+                    WaveformCard(entry.title, caption: entry.caption) {
+                        WaveformView(
+                            audioURL: url,
+                            configuration: .init(
+                                style: .spectralTint(low: entry.low, high: entry.high),
+                                damping: .init(percentage: 0.125, sides: .both)
+                            )
+                        )
+                        .frame(height: 120)
                     }
                 }
             }

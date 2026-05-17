@@ -50,6 +50,13 @@ public extension WaveformRenderer {
                                        start: CGPoint(x: 0, y: 0),
                                        end: CGPoint(x: 0, y: configuration.size.height),
                                        options: .drawsAfterEndLocation)
+
+        case let .spectralTint(low, _):
+            // `defaultStyle` is the fallback path for renderers that don't implement spectral drawing
+            // themselves — they pass us a normal envelope path and we fill it with the `low` color.
+            // `LinearWaveformRenderer.render` overrides this for proper per-column tinting.
+            context.setFillColor(low.cgColor)
+            context.fillPath()
         }
     }
 }

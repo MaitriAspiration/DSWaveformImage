@@ -11,6 +11,7 @@ public struct WaveformView<Content: View>: View {
     private let content: (WaveformShape) -> Content
 
     @State private var samples: [Float] = []
+    @State private var spectralCentroids: [Float] = []
     @State private var rescaleTimer: Timer?
     @State private var currentSize: CGSize = .zero
 
@@ -40,7 +41,17 @@ public struct WaveformView<Content: View>: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            content(WaveformShape(samples: samples, configuration: configuration, renderer: renderer))
+            Group {
+                if case .spectralTint = configuration.style {
+                    // Spectral tint can't be expressed as a single Path/fill, so it bypasses the
+                    // `WaveformShape`+`content` pipeline and renders per-column into a Canvas via the
+                    // shared `WaveformImageDrawer`. Custom `content` closures don't apply in this mode
+                    // — the tinting drives the visual style end-to-end.
+                    spectralCanvas
+                } else {
+                    content(WaveformShape(samples: samples, configuration: configuration, renderer: renderer))
+                }
+            }
                 .scaleEffect(x: scaleDuringResize(for: geometry), y: 1, anchor: resizeAnchor)
                 .onAppear {
                     guard samples.isEmpty else { return }
@@ -52,6 +63,20 @@ public struct WaveformView<Content: View>: View {
         }
     }
 
+    @ViewBuilder
+    private var spectralCanvas: some View {
+        let samples = self.samples
+        let centroids = self.spectralCentroids
+        let configuration = self.configuration
+        let renderer = self.renderer
+        Canvas(rendersAsynchronously: true) { context, size in
+            context.withCGContext { cgContext in
+                let effectiveRenderer = (renderer as? SpectralAwareWaveformRenderer)?.withSpectralCentroids(centroids) ?? renderer
+                WaveformImageDrawer().draw(waveform: samples, on: cgContext, with: configuration.with(size: size), renderer: effectiveRenderer)
+            }
+        }
+    }
+
     private func update(size: CGSize, url: URL, configuration: Waveform.Configuration, delayed: Bool = false) {
         rescaleTimer?.invalidate()
 
@@ -60,11 +85,20 @@ public struct WaveformView<Content: View>: View {
                 do {
                     let samplesNeeded = Int(size.width * configuration.scale)
                     let channelSelection = (renderer as? ChannelAwareWaveformRenderer)?.channelSelection ?? .merged
-                    let samples = try await WaveformAnalyzer().samples(fromAudioAt: url, count: samplesNeeded, channelSelection: channelSelection)
 
-                    await MainActor.run {
-                        self.currentSize = size
-                        self.samples = samples
+                    if case .spectralTint = configuration.style {
+                        let analysis = try await WaveformAnalyzer().analyze(fromAudioAt: url, count: samplesNeeded, channelSelection: channelSelection)
+                        await MainActor.run {
+                            self.currentSize = size
+                            self.samples = analysis.amplitudes
+                            self.spectralCentroids = analysis.spectralCentroids
+                        }
+                    } else {
+                        let samples = try await WaveformAnalyzer().samples(fromAudioAt: url, count: samplesNeeded, channelSelection: channelSelection)
+                        await MainActor.run {
+                            self.currentSize = size
+                            self.samples = samples
+                        }
                     }
                 } catch {
                     assertionFailure(error.localizedDescription)

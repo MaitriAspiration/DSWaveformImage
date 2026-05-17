@@ -16,6 +16,24 @@ struct WaveformAnalysis {
     let fft: [TempiFFT]?
 }
 
+public extension Waveform {
+    /// Spectrum-aware result returned by `WaveformAnalyzer.analyze(...)`. `amplitudes` is the normal
+    /// envelope (one value per requested sample slot, normalized so `0` is loud and `1` is silence,
+    /// matching the rest of the rendering pipeline). `spectralCentroids` is parallel to `amplitudes`:
+    /// one centroid per slot, normalized to `[0, 1]` on a logarithmic frequency scale — `0` ≈ the
+    /// configured `minFrequency`, `1` ≈ Nyquist. Silent / sub-noise-floor slots fall back to `0.5`
+    /// so they don't drag a spectral-tint visualization to either color extreme.
+    struct SpectralAnalysis: Sendable {
+        public let amplitudes: [Float]
+        public let spectralCentroids: [Float]
+
+        public init(amplitudes: [Float], spectralCentroids: [Float]) {
+            self.amplitudes = amplitudes
+            self.spectralCentroids = spectralCentroids
+        }
+    }
+}
+
 /// Calculates the waveform of the initialized asset URL.
 public struct WaveformAnalyzer: Sendable {
     public enum AnalyzeError: Error {
@@ -62,7 +80,7 @@ public struct WaveformAnalyzer: Sendable {
                 throw AnalyzeError.emptyTracks
             }
 
-            return try await waveformSamples(track: assetTrack, reader: assetReader, count: count, channelSelection: channelSelection, fftBands: nil).amplitudes
+            return try await waveformSamples(track: assetTrack, reader: assetReader, count: count, channelSelection: channelSelection, fftConfig: nil).amplitudes
         }.value
     }
 
@@ -72,6 +90,47 @@ public struct WaveformAnalyzer: Sendable {
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
     public func samples(fromAudioAt audioAssetURL: URL, count: Int, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
         try await samples(fromAudioAt: audioAssetURL, count: count, channelSelection: .merged, qos: qos)
+    }
+
+    /// Calculates both the amplitude envelope and a parallel array of normalized spectral centroids.
+    /// Use this when you want to drive a spectrum-aware visualization (e.g. `Waveform.Style.spectralTint`).
+    ///
+    /// - Parameter fromAudioAt: local filesystem URL of the audio file to process.
+    /// - Parameter count: number of output amplitude slots; centroid count matches.
+    /// - Parameter bandsPerOctave: log-spaced spectrum resolution. Default `4` (quarter-octave) is
+    ///   musically meaningful and cheap.
+    /// - Parameter minFrequency: lower edge of the log-frequency mapping. Default `50 Hz` brushes the
+    ///   bottom of the bass range without picking up rumble.
+    /// - Parameter channelSelection: which channel(s) to extract. Default `.merged`.
+    /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
+    public func analyze(
+        fromAudioAt audioAssetURL: URL,
+        count: Int,
+        bandsPerOctave: Int = 4,
+        minFrequency: Float = 50,
+        channelSelection: Waveform.ChannelSelection = .merged,
+        qos: DispatchQoS.QoSClass = .userInitiated
+    ) async throws -> Waveform.SpectralAnalysis {
+        try await Task(priority: taskPriority(qos: qos)) {
+            let audioAsset = AVURLAsset(url: audioAssetURL, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+            let assetReader = try AVAssetReader(asset: audioAsset)
+            guard let assetTrack = try await audioAsset.loadTracks(withMediaType: .audio).first else {
+                throw AnalyzeError.emptyTracks
+            }
+            let analysis = try await waveformSamples(
+                track: assetTrack,
+                reader: assetReader,
+                count: count,
+                channelSelection: channelSelection,
+                fftConfig: FFTConfig(bandsPerOctave: bandsPerOctave, minFrequency: minFrequency)
+            )
+            let centroids = WaveformAnalyzer.spectralCentroids(
+                from: analysis.fft ?? [],
+                amplitudeCount: analysis.amplitudes.count,
+                minFrequency: minFrequency
+            )
+            return Waveform.SpectralAnalysis(amplitudes: analysis.amplitudes, spectralCentroids: centroids)
+        }.value
     }
 
     /// Calculates the amplitude envelope of the initialized audio asset URL, downsampled to the required `count` amount of samples.
@@ -96,13 +155,20 @@ public struct WaveformAnalyzer: Sendable {
 
 // MARK: - Private
 
+/// Parameters that drive log-spaced FFT banding. `nil` everywhere it appears means "skip FFT entirely"
+/// — the cheap path used by callers that only want the amplitude envelope.
+struct FFTConfig: Sendable {
+    let bandsPerOctave: Int
+    let minFrequency: Float
+}
+
 internal extension WaveformAnalyzer {
     func waveformSamples(
             track audioAssetTrack: AVAssetTrack,
             reader assetReader: AVAssetReader,
             count requiredNumberOfSamples: Int,
             channelSelection: Waveform.ChannelSelection = .merged,
-            fftBands: Int?
+            fftConfig: FFTConfig?
     ) async throws -> WaveformAnalysis {
         guard requiredNumberOfSamples > 0 else {
             throw AnalyzeError.userError
@@ -118,7 +184,7 @@ internal extension WaveformAnalyzer {
         }
 
         let totalSamples = try await totalSamples(of: audioAssetTrack, channelSelection: channelSelection)
-        let analysis = extract(totalSamples, downsampledTo: requiredNumberOfSamples, from: assetReader, channelSelection: channelSelection, fftBands: fftBands)
+        let analysis = extract(totalSamples, downsampledTo: requiredNumberOfSamples, from: assetReader, channelSelection: channelSelection, fftConfig: fftConfig)
 
         switch assetReader.status {
         case .completed:
@@ -134,18 +200,23 @@ internal extension WaveformAnalyzer {
         downsampledTo targetSampleCount: Int,
         from assetReader: AVAssetReader,
         channelSelection: Waveform.ChannelSelection = .merged,
-        fftBands: Int?
+        fftConfig: FFTConfig?
     ) -> WaveformAnalysis {
         let isStereo = (channelSelection == .stereo)
         var leftSamples = [Float]()
         var rightSamples = [Float]()
-        var outputFFT = fftBands == nil ? nil : [TempiFFT]()
+        var outputFFT = fftConfig == nil ? nil : [TempiFFT]()
         var sampleBuffer = Data()
         var sampleBufferFFT = Data()
 
         // read upfront to avoid frequent re-calculation (and memory bloat from C-bridging)
         let samplesPerPixel = max(1, totalSamples / targetSampleCount)
         let samplesPerFFT = 4096 // ~100ms at 44.1kHz, rounded to closest pow(2) for FFT
+
+        // Use the track's real sample rate so FFT band frequencies (and any derived centroid) are
+        // accurate. Default to 44.1 kHz only if the format description is unavailable for some reason
+        // — that's the same constant the code used to hardcode, so this path is no worse than before.
+        let sampleRate: Float = channelInfo(from: assetReader).map { Float($0.basicDescription.mSampleRate) } ?? 44_100
 
         // `startReading()` throws an uncatchable ObjC exception if the reader isn't in `.unknown`
         // (e.g. already cancelled or failed). Normal callers always pass a fresh reader, but bail
@@ -170,7 +241,7 @@ internal extension WaveformAnalyzer {
                 var readBufferPointer: UnsafeMutablePointer<Int8>? = nil
                 CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: &readBufferLength, totalLengthOut: nil, dataPointerOut: &readBufferPointer)
                 sampleBuffer.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
-                if fftBands != nil {
+                if fftConfig != nil {
                     // don't append data to this buffer unless we're going to use it.
                     sampleBufferFFT.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
                 }
@@ -187,8 +258,8 @@ internal extension WaveformAnalyzer {
                     sampleBuffer = Data(sampleBuffer)
                 }
 
-                if let fftBands = fftBands, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
-                    let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, fftBands: fftBands)
+                if let fftConfig = fftConfig, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
+                    let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, sampleRate: sampleRate, fftConfig: fftConfig)
                     sampleBufferFFT.removeFirst(processedFFTs.count * samplesPerFFT * MemoryLayout<Int16>.size)
                     outputFFT? += processedFFTs
                 }
@@ -306,7 +377,7 @@ internal extension WaveformAnalyzer {
         return downSampled
     }
 
-    private func process(_ sampleBuffer: Data, samplesPerFFT: Int, fftBands: Int) -> [TempiFFT] {
+    private func process(_ sampleBuffer: Data, samplesPerFFT: Int, sampleRate: Float, fftConfig: FFTConfig) -> [TempiFFT] {
         var ffts = [TempiFFT]()
         let sampleLength = sampleBuffer.count / MemoryLayout<Int16>.size
         sampleBuffer.withUnsafeBytes { (samplesRawPointer: UnsafeRawBufferPointer) in
@@ -319,16 +390,79 @@ internal extension WaveformAnalyzer {
 
             repeat {
                 let fftBuffer = processingBuffer[0..<samplesPerFFT]
-                let fft = TempiFFT(withSize: samplesPerFFT, sampleRate: 44100.0)
+                let fft = TempiFFT(withSize: samplesPerFFT, sampleRate: sampleRate)
                 fft.windowType = TempiFFTWindowType.hanning
                 fft.fftForward(Array(fftBuffer))
-                fft.calculateLinearBands(minFrequency: 0, maxFrequency: fft.nyquistFrequency, numberOfBands: fftBands)
+                fft.calculateLogarithmicBands(
+                    minFrequency: fftConfig.minFrequency,
+                    maxFrequency: fft.nyquistFrequency,
+                    bandsPerOctave: fftConfig.bandsPerOctave
+                )
                 ffts.append(fft)
 
                 processingBuffer.removeFirst(samplesPerFFT)
             } while processingBuffer.count >= samplesPerFFT
         }
         return ffts
+    }
+
+    /// Collapses an array of per-frame FFT results into a single centroid per amplitude slot, normalized
+    /// to `[0, 1]` on a log-frequency scale. Centroid is computed in log-frequency space (weighted by
+    /// band magnitudes), which is what reads "musically" when used to color a waveform.
+    ///
+    /// When `fftFrames.count > amplitudeCount` (typical: a multi-second file at ~10 FFT frames/sec vs.
+    /// hundreds of output pixels), we average the centroids of frames mapped to each slot. When it's
+    /// the other way (very short files), each slot picks the single closest frame. Silent slots
+    /// (sum-of-magnitudes ≈ 0) get `0.5` so they don't pull a 2-color gradient toward either extreme.
+    static func spectralCentroids(from fftFrames: [TempiFFT], amplitudeCount: Int, minFrequency: Float) -> [Float] {
+        guard amplitudeCount > 0 else { return [] }
+        guard !fftFrames.isEmpty else {
+            return Array(repeating: 0.5, count: amplitudeCount)
+        }
+
+        // Compute a per-frame log-centroid in [0, 1].
+        let frameCount = fftFrames.count
+        let nyquist = fftFrames[0].nyquistFrequency
+        let logMin = logf(max(minFrequency, 1))
+        let logMax = logf(max(nyquist, minFrequency + 1))
+        let logSpan = max(logMax - logMin, .leastNormalMagnitude)
+
+        var perFrame = [Float](repeating: 0.5, count: frameCount)
+        for (idx, fft) in fftFrames.enumerated() {
+            let bandCount = fft.numberOfBands
+            guard bandCount > 0 else { continue }
+            var weightedLog: Float = 0
+            var totalMag: Float = 0
+            for b in 0..<bandCount {
+                let mag = fft.bandMagnitudes[b]
+                let freq = fft.bandFrequencies[b]
+                if mag > 0, freq > 0 {
+                    weightedLog += logf(freq) * mag
+                    totalMag += mag
+                }
+            }
+            if totalMag > 0 {
+                let logCentroid = weightedLog / totalMag
+                perFrame[idx] = min(1, max(0, (logCentroid - logMin) / logSpan))
+            } // else stays 0.5 — silence
+        }
+
+        // Re-bin to amplitudeCount slots. Both directions handled by the same math:
+        // map slot i to the frame range [i * frameCount / N, (i+1) * frameCount / N).
+        var out = [Float](repeating: 0.5, count: amplitudeCount)
+        for i in 0..<amplitudeCount {
+            let start = (i * frameCount) / amplitudeCount
+            let end = max(start + 1, ((i + 1) * frameCount) / amplitudeCount)
+            let clampedEnd = min(end, frameCount)
+            if clampedEnd <= start {
+                out[i] = perFrame[min(start, frameCount - 1)]
+            } else {
+                var sum: Float = 0
+                for j in start..<clampedEnd { sum += perFrame[j] }
+                out[i] = sum / Float(clampedEnd - start)
+            }
+        }
+        return out
     }
 
     func normalize(_ samples: [Float]) -> [Float] {

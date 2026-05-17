@@ -37,6 +37,45 @@ func makeSilentAudioFile(durationSeconds: Double, sampleRate: Double = 44_100) t
     return url
 }
 
+/// Writes a mono 16-bit PCM WAV containing a single sine tone at `frequency` Hz. Used by spectral
+/// tests to verify that a known input frequency lands in the expected normalized centroid range.
+func makeSineToneAudioFile(durationSeconds: Double, frequency: Double, sampleRate: Double = 44_100, amplitude: Double = 0.5) throws -> URL {
+    let url = FileManager.default.temporaryDirectory
+        .appendingPathComponent("dswaveform-test-tone-\(UUID().uuidString).wav")
+
+    let settings: [String: Any] = [
+        AVFormatIDKey: kAudioFormatLinearPCM,
+        AVSampleRateKey: sampleRate,
+        AVNumberOfChannelsKey: 1,
+        AVLinearPCMBitDepthKey: 16,
+        AVLinearPCMIsBigEndianKey: false,
+        AVLinearPCMIsFloatKey: false,
+        AVLinearPCMIsNonInterleaved: false,
+    ]
+    let file = try AVAudioFile(forWriting: url, settings: settings)
+    let format = file.processingFormat
+    let chunkFrames: AVAudioFrameCount = 44_100
+    let totalFrames = AVAudioFrameCount(durationSeconds * sampleRate)
+    let twoPiOverSR = 2 * Double.pi * frequency / sampleRate
+    var written: AVAudioFrameCount = 0
+    while written < totalFrames {
+        let frames = min(chunkFrames, totalFrames - written)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+            throw NSError(domain: "TestSupport", code: 1, userInfo: [NSLocalizedDescriptionKey: "buffer alloc failed"])
+        }
+        buffer.frameLength = frames
+        if let channel = buffer.floatChannelData?[0] {
+            for i in 0..<Int(frames) {
+                let t = Double(Int(written) + i)
+                channel[i] = Float(sin(twoPiOverSR * t) * amplitude)
+            }
+        }
+        try file.write(from: buffer)
+        written += frames
+    }
+    return url
+}
+
 /// Current process physical memory footprint in bytes, via `task_vm_info`.
 func currentPhysFootprint() -> Int64 {
     var info = task_vm_info_data_t()

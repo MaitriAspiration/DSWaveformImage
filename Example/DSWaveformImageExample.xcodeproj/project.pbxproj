@@ -33,6 +33,9 @@
 		8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
 		7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
 		03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
+		D5AA1B70CF1242D8A8B3F501 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
+		D5AA1B70CF1242D8A8B3F502 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
+		D5AA1B70CF1242D8A8B3F503 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
 		F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
 		0C4F101C6DE441D183707BBA /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
 		14364ADD13D4468397C7CB77 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
@@ -63,6 +66,7 @@
 		C39A10FD28E2E91E004AB185 /* SwiftUIExampleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftUIExampleView.swift; sourceTree = "<group>"; };
 		C39A110128E2E98A004AB185 /* example_sound_2.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_sound_2.m4a; sourceTree = "<group>"; };
 		E864759A998641BAAB3AB0D1 /* example_stereo.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_stereo.m4a; sourceTree = "<group>"; };
+		D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-12s.mp3"; sourceTree = "<group>"; };
 		7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformGalleryView.swift; sourceTree = "<group>"; };
 		C39A110728E2EABF004AB185 /* DSWaveformImageExample-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DSWaveformImageExample-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C39A110928E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSWaveformImageExample_macOSApp.swift; sourceTree = "<group>"; };
@@ -204,6 +208,7 @@
 				C39A110128E2E98A004AB185 /* example_sound_2.m4a */,
 				C39A10F428E2E77F004AB185 /* example_sound.m4a */,
 				E864759A998641BAAB3AB0D1 /* example_stereo.m4a */,
+				D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */,
 				C3D671FC28E2E61F006C022D /* Info.plist */,
 				C3D671F928E2E61F006C022D /* LaunchScreen.storyboard */,
 				C3D671F428E2E61F006C022D /* Main.storyboard */,
@@ -349,6 +354,7 @@
 			files = (
 				A96F71AD2AE02CF4007ED383 /* example_sound.m4a in Resources */,
 				03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */,
+				D5AA1B70CF1242D8A8B3F503 /* sample-12s.mp3 in Resources */,
 				A96F71A42AE02BB2007ED383 /* Preview Assets.xcassets in Resources */,
 				A96F71A12AE02BB2007ED383 /* Assets.xcassets in Resources */,
 			);
@@ -360,6 +366,7 @@
 			files = (
 				C39A111C28E2EC50004AB185 /* example_sound.m4a in Resources */,
 				8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */,
+				D5AA1B70CF1242D8A8B3F502 /* sample-12s.mp3 in Resources */,
 				C39A111128E2EAC0004AB185 /* Preview Assets.xcassets in Resources */,
 				C39A110E28E2EAC0004AB185 /* Assets.xcassets in Resources */,
 			);
@@ -374,6 +381,7 @@
 				C3D671F828E2E61F006C022D /* Assets.xcassets in Resources */,
 				C39A10F828E2E77F004AB185 /* example_sound.m4a in Resources */,
 				7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */,
+				D5AA1B70CF1242D8A8B3F501 /* sample-12s.mp3 in Resources */,
 				C3D671F628E2E61F006C022D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

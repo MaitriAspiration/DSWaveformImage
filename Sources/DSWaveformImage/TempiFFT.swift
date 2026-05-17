@@ -224,6 +224,58 @@ import Accelerate
         self.bandMaxFreq = self.bandFrequencies.last
     }
 
+    /// Applies logical banding on top of the spectrum data. The bands are spaced logarithmically across
+    /// the requested frequency range — i.e. each band spans the same musical interval (1/`bandsPerOctave`
+    /// of an octave). This matches how humans perceive pitch and is what you want for any centroid /
+    /// spectral-coloring use case. `minFrequency` is clamped up to the bin resolution (`bandwidth`); a
+    /// value below that would map to DC and produce a useless band. `bandFrequencies[i]` is the
+    /// geometric mean of the band edges — the right "center" for a log-spaced band.
+    func calculateLogarithmicBands(minFrequency: Float, maxFrequency: Float, bandsPerOctave: Int) {
+        assert(hasPerformedFFT, "*** Perform the FFT first.")
+        assert(bandsPerOctave > 0, "*** bandsPerOctave must be > 0")
+
+        let actualMaxFrequency = min(self.nyquistFrequency, maxFrequency)
+        let actualMinFrequency = max(self.bandwidth, minFrequency)
+        guard actualMinFrequency < actualMaxFrequency else {
+            self.numberOfBands = 0
+            self.bandMagnitudes = []
+            self.bandFrequencies = []
+            self.bandMinFreq = actualMinFrequency
+            self.bandMaxFreq = actualMaxFrequency
+            return
+        }
+
+        let octaves = log2f(actualMaxFrequency / actualMinFrequency)
+        let bandCount = max(1, Int(ceilf(octaves * Float(bandsPerOctave))))
+        let ratio = powf(2, 1 / Float(bandsPerOctave))
+
+        self.numberOfBands = bandCount
+        self.bandMagnitudes = [Float](repeating: 0.0, count: bandCount)
+        self.bandFrequencies = [Float](repeating: 0.0, count: bandCount)
+
+        for i in 0..<bandCount {
+            let lowFreq = actualMinFrequency * powf(ratio, Float(i))
+            let highFreq = min(actualMaxFrequency, actualMinFrequency * powf(ratio, Float(i + 1)))
+
+            let magsStartIdx = max(0, magIndexForFreq(lowFreq))
+            let magsEndIdx = min(magnitudes.count, magIndexForFreq(highFreq))
+
+            let magsAvg: Float
+            if magsEndIdx <= magsStartIdx {
+                // Band is narrower than one FFT bin — sample the nearest bin instead of averaging zero.
+                magsAvg = magnitudes[min(magsStartIdx, magnitudes.count - 1)]
+            } else {
+                magsAvg = fastAverage(magnitudes, magsStartIdx, magsEndIdx)
+            }
+            self.bandMagnitudes[i] = magsAvg
+            // Geometric mean — the "center" of a log-spaced interval.
+            self.bandFrequencies[i] = sqrtf(lowFreq * highFreq)
+        }
+
+        self.bandMinFreq = bandFrequencies.first
+        self.bandMaxFreq = bandFrequencies.last
+    }
+
     private func magIndexForFreq(_ freq: Float) -> Int {
         return Int(Float(self.magnitudes.count) * freq / self.nyquistFrequency)
     }

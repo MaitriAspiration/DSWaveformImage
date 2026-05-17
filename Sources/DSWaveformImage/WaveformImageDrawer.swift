@@ -133,10 +133,29 @@ private extension WaveformImageDrawer {
         let sampleCount = Int(configuration.size.width * configuration.scale)
         let waveformAnalyzer = WaveformAnalyzer()
         let channelSelection = (renderer as? ChannelAwareWaveformRenderer)?.channelSelection ?? .merged
-        let samples = try await waveformAnalyzer.samples(fromAudioAt: audioAssetURL, count: sampleCount, channelSelection: channelSelection, qos: qos)
+
+        let samples: [Float]
+        let effectiveRenderer: WaveformRenderer
+
+        if case .spectralTint = configuration.style, let spectralRenderer = renderer as? SpectralAwareWaveformRenderer {
+            // Spectrum-aware path: one analyze pass returns both envelope and centroids, and we hand
+            // the centroids to the renderer up-front. Falls through to the cheap path if the renderer
+            // doesn't actually want them.
+            let analysis = try await waveformAnalyzer.analyze(
+                fromAudioAt: audioAssetURL,
+                count: sampleCount,
+                channelSelection: channelSelection,
+                qos: qos
+            )
+            samples = analysis.amplitudes
+            effectiveRenderer = spectralRenderer.withSpectralCentroids(analysis.spectralCentroids)
+        } else {
+            samples = try await waveformAnalyzer.samples(fromAudioAt: audioAssetURL, count: sampleCount, channelSelection: channelSelection, qos: qos)
+            effectiveRenderer = renderer
+        }
         let dampedSamples = configuration.shouldDamp ? self.damp(samples, with: configuration) : samples
 
-        if let image = waveformImage(from: dampedSamples, with: configuration, renderer: renderer, position: position) {
+        if let image = waveformImage(from: dampedSamples, with: configuration, renderer: effectiveRenderer, position: position) {
             return image
         } else {
             throw GenerationError.generic
