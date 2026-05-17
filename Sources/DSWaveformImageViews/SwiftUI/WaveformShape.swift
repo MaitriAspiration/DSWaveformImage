@@ -35,7 +35,8 @@ public struct WaveformShape: Shape {
 
         let size = CGSize(width: rect.maxX, height: rect.maxY)
         let isStereo = (renderer as? ChannelAwareWaveformRenderer)?.channelSelection == .stereo
-        let dampedSamples = configuration.shouldDamp ? damp(samples, with: configuration, isStereo: isStereo) : samples
+        let scaledSamples = applyAmplitudeScaling(samples, scaling: configuration.amplitudeScaling)
+        let dampedSamples = configuration.shouldDamp ? damp(scaledSamples, with: configuration, isStereo: isStereo) : scaledSamples
         let path = renderer.path(samples: dampedSamples, with: configuration.with(size: size), lastOffset: 0)
 
         return Path(path)
@@ -56,6 +57,19 @@ public struct WaveformShape: Shape {
 }
 
 private extension WaveformShape {
+    /// Mirror of `WaveformImageDrawer.applyAmplitudeScaling` for the SwiftUI Shape pipeline. See its
+    /// docs for the rationale.
+    private func applyAmplitudeScaling(_ samples: [Float], scaling: Waveform.AmplitudeScaling) -> [Float] {
+        switch scaling {
+        case .absolute:
+            return samples
+        case .normalized:
+            guard let peak = samples.min(), peak > 0, peak < 1 else { return samples }
+            let range = 1 - peak
+            return samples.map { ($0 - peak) / range }
+        }
+    }
+
     /// Apply damping to each channel half independently in `.stereo` mode. Samples come in laid out as
     /// `[allLeft..., allRight...]`, so damping over the concatenated array would only fade the start of L
     /// and the end of R — the middle of the array (end of L + start of R) would get no damping at all.

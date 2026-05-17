@@ -9,159 +9,22 @@ public struct WaveformGalleryView: View {
     public init() {}
 
     public var body: some View {
-        ScrollView {
-            HStack(spacing: 0) {
-                Spacer(minLength: 0)
-                // LazyVStack so sections only instantiate when scrolled into view — keeps the number
-                // of concurrent `WaveformView` analyses small. macOS AVFoundation hangs when too many
-                // AVAssetReader instances target the same audio URL simultaneously.
-                LazyVStack(alignment: .leading, spacing: 28) {
-                    HeroSection()
-                    PlaygroundSection()
-                    RenderersSection()
-                    StylesSection()
-                    SpectralSection()
-                    ChannelsSection()
-                    CustomShapeSection()
-                    Spacer(minLength: 24)
-                }
-                .frame(maxWidth: 720)
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+        // GalleryScrollView wraps the sections in a LazyVStack so sections only instantiate when
+        // scrolled into view — keeps the number of concurrent `WaveformView` analyses small. macOS
+        // AVFoundation hangs when too many AVAssetReader instances target the same audio URL
+        // simultaneously.
+        GalleryScrollView {
+            GalleryHero(
+                title: "DSWaveformImage",
+                subtitle: "A tour of the rendering surface — pulse-modulated stereo demo audio throughout."
+            )
+            PlaygroundSection()
+            RenderersSection()
+            StylesSection()
+            SpectralSection()
+            ChannelsSection()
+            CustomShapeSection()
         }
-        .background(WaveformGalleryStyle.backgroundFill.ignoresSafeArea())
-    }
-}
-
-// MARK: - Shared style constants
-
-@available(iOS 15.0, macOS 12.0, *)
-enum WaveformGalleryStyle {
-    static let cardCornerRadius: CGFloat = 16
-    static let cardPadding: CGFloat = 16
-
-    static var cardFill: Color {
-        #if os(macOS)
-        Color(nsColor: .controlBackgroundColor)
-        #else
-        Color(uiColor: .secondarySystemBackground)
-        #endif
-    }
-
-    static var backgroundFill: Color {
-        #if os(macOS)
-        Color(nsColor: .windowBackgroundColor)
-        #else
-        Color(uiColor: .systemBackground)
-        #endif
-    }
-
-    static let subtleStroke = Color.gray.opacity(0.18)
-}
-
-// MARK: - Audio assets
-
-@available(iOS 15.0, macOS 12.0, *)
-private enum SampleAudio {
-    /// Synthetic 6-second stereo clip: left = 3 long tone pulses (440 Hz), right = 6 short pulses (659 Hz).
-    static let stereoDemo: URL = Bundle.main.url(forResource: "example_stereo", withExtension: "m4a")!
-
-    /// 12-second mixed-content clip with bass, mids, and highs — used by the spectral section so the
-    /// tint visibly sweeps across the gradient as the dominant frequency changes over time.
-    static let twelveSecondMix: URL = Bundle.main.url(forResource: "sample-12s", withExtension: "mp3")!
-}
-
-// MARK: - Hero
-
-@available(iOS 15.0, macOS 12.0, *)
-private struct HeroSection: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("DSWaveformImage")
-                .font(.largeTitle.weight(.bold))
-            Text("A tour of the rendering surface — pulse-modulated stereo demo audio throughout.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.top, 4)
-    }
-}
-
-// MARK: - Section primitive
-
-@available(iOS 15.0, macOS 12.0, *)
-private struct GallerySection<Content: View>: View {
-    let title: String
-    let systemImage: String
-    let subtitle: String?
-    @ViewBuilder let content: () -> Content
-
-    init(_ title: String, systemImage: String, subtitle: String? = nil, @ViewBuilder content: @escaping () -> Content) {
-        self.title = title
-        self.systemImage = systemImage
-        self.subtitle = subtitle
-        self.content = content
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Label {
-                    Text(title).font(.title2.weight(.semibold))
-                } icon: {
-                    Image(systemName: systemImage).foregroundStyle(.tint)
-                }
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            content()
-        }
-    }
-}
-
-// MARK: - Card primitive
-
-@available(iOS 15.0, macOS 12.0, *)
-private struct WaveformCard<Content: View>: View {
-    let title: String
-    let caption: String?
-    @ViewBuilder let content: () -> Content
-
-    init(_ title: String, caption: String? = nil, @ViewBuilder content: @escaping () -> Content) {
-        self.title = title
-        self.caption = caption
-        self.content = content
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.weight(.semibold))
-                if let caption {
-                    Text(caption)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            content()
-                .frame(maxWidth: .infinity)
-        }
-        .padding(WaveformGalleryStyle.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: WaveformGalleryStyle.cardCornerRadius, style: .continuous)
-                .fill(WaveformGalleryStyle.cardFill)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: WaveformGalleryStyle.cardCornerRadius, style: .continuous)
-                .strokeBorder(WaveformGalleryStyle.subtleStroke, lineWidth: 0.5)
-        )
     }
 }
 
@@ -185,13 +48,27 @@ private struct PlaygroundSection: View {
         var id: Self { self }
     }
 
+    enum ScalingChoice: String, CaseIterable, Identifiable {
+        case absolute = "Absolute"
+        case normalized = "Normalized"
+        var id: Self { self }
+
+        var value: Waveform.AmplitudeScaling {
+            switch self {
+            case .absolute: return .absolute
+            case .normalized: return .normalized
+            }
+        }
+    }
+
     @State private var renderer: RendererChoice = .linear
     @State private var style: StyleChoice = .gradient
+    @State private var scaling: ScalingChoice = .absolute
     @State private var damped: Bool = true
     @State private var color: Color = .indigo
 
     var body: some View {
-        GallerySection("Playground", systemImage: "slider.horizontal.3", subtitle: "Pick a renderer and a style — the same configuration drives the preview below.") {
+        GallerySection("Playground", systemImage: "slider.horizontal.3", subtitle: "Pick a renderer, style, and amplitude scaling — the same configuration drives the preview below.") {
             VStack(spacing: 16) {
                 WaveformCard(descriptor) {
                     WaveformView(
@@ -212,7 +89,8 @@ private struct PlaygroundSection: View {
     private var configuration: Waveform.Configuration {
         Waveform.Configuration(
             style: styleInstance,
-            damping: damped ? .init(percentage: 0.125, sides: .both) : nil
+            damping: damped ? .init(percentage: 0.125, sides: .both) : nil,
+            amplitudeScaling: scaling.value
         )
     }
 
@@ -237,7 +115,7 @@ private struct PlaygroundSection: View {
     }
 
     private var descriptor: String {
-        "\(renderer.rawValue) · \(style.rawValue.lowercased())\(damped ? " · damped" : "")"
+        "\(renderer.rawValue) · \(style.rawValue.lowercased()) · \(scaling.rawValue.lowercased())\(damped ? " · damped" : "")"
     }
 
     // MARK: Controls
@@ -254,6 +132,13 @@ private struct PlaygroundSection: View {
             controlBlock("Style") {
                 Picker("Style", selection: $style) {
                     ForEach(StyleChoice.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+            controlBlock("Amplitude scaling") {
+                Picker("Amplitude scaling", selection: $scaling) {
+                    ForEach(ScalingChoice.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -369,7 +254,7 @@ private struct StylesSection: View {
 private struct SpectralSection: View {
     // The stereo demo only has two pure tones, which gives a flat tint. The 12-second mix has bass,
     // mids, and highs spread over time so the color sweeps visibly across the gradient.
-    private let url = SampleAudio.twelveSecondMix
+    private let url = SampleAudio.stereoDemo
 
     private struct Entry: Identifiable {
         let id = UUID()

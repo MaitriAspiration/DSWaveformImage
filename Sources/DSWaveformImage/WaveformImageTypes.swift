@@ -196,6 +196,23 @@ public enum Waveform {
     }
 
     /**
+     Controls how sample amplitudes are mapped to the canvas's vertical range.
+     */
+    public enum AmplitudeScaling: Equatable, Sendable {
+        /// Each sample's amplitude is mapped to canvas height using a fixed `0 dBFS` reference. A
+        /// file that peaks at -6 dB renders at roughly half-height; a -3 dB peak fills nearly all
+        /// of the available space. Quiet audio looks visibly quieter, loud audio louder — relative
+        /// loudness is preserved across files. **Default**.
+        case absolute
+
+        /// Each sample is renormalized so the loudest sample in the file maps to the canvas edge.
+        /// Every file fills the full canvas regardless of its actual loudness — useful when you
+        /// want consistent visual size across files at different volumes. The shape of the
+        /// envelope is preserved; only the dynamic range is stretched.
+        case normalized
+    }
+
+    /**
      Defines the damping attributes of the waveform.
      */
     public struct Damping: Equatable, Sendable {
@@ -260,14 +277,22 @@ public enum Waveform {
         /**
          Vertical scaling factor. Default is `0.95`, leaving a small vertical padding.
 
-         The `verticalScalingFactor` describes the maximum vertical amplitude
-         of the envelope being drawn in relation to its view's (image's) size.
+         At `1.0` the loudest possible sample fills exactly the available vertical space for the
+         configured `Waveform.Position`: full canvas height for `.top`/`.bottom`, half-canvas (per
+         direction from the centerline) for `.middle`. `> 1` lets louder samples extend past the
+         view edge and clip.
 
          * `0`: the waveform has no vertical amplitude and is just a line.
          * `1`: the waveform uses the full available vertical space.
          * `> 1`: louder waveform samples will extend out of the view boundaries and clip.
          */
         public let verticalScalingFactor: CGFloat
+
+        /// How sample amplitudes are mapped to the canvas. Default is `.absolute` — the same
+        /// behavior as before this property existed: signal loudness drives visual amplitude
+        /// proportionally to a fixed `0 dBFS` reference. Switch to `.normalized` to renormalize
+        /// every file to its own peak so quiet recordings fill the canvas as fully as loud ones.
+        public let amplitudeScaling: AmplitudeScaling
 
         /// Waveform antialiasing. If enabled, may reduce overall opacity. Default is `false`.
         public let shouldAntialias: Bool
@@ -282,6 +307,7 @@ public enum Waveform {
                     damping: Damping? = nil,
                     scale: CGFloat = DSScreen.scale,
                     verticalScalingFactor: CGFloat = 0.95,
+                    amplitudeScaling: AmplitudeScaling = .absolute,
                     shouldAntialias: Bool = false) {
             guard verticalScalingFactor > 0 else {
                 preconditionFailure("verticalScalingFactor must be greater 0")
@@ -293,6 +319,7 @@ public enum Waveform {
             self.size = size
             self.scale = scale
             self.verticalScalingFactor = verticalScalingFactor
+            self.amplitudeScaling = amplitudeScaling
             self.shouldAntialias = shouldAntialias
         }
 
@@ -303,6 +330,7 @@ public enum Waveform {
                          damping: Damping? = nil,
                          scale: CGFloat? = nil,
                          verticalScalingFactor: CGFloat? = nil,
+                         amplitudeScaling: AmplitudeScaling? = nil,
                          shouldAntialias: Bool? = nil
         ) -> Configuration {
             Configuration(
@@ -312,6 +340,7 @@ public enum Waveform {
                 damping: damping ?? self.damping,
                 scale: scale ?? self.scale,
                 verticalScalingFactor: verticalScalingFactor ?? self.verticalScalingFactor,
+                amplitudeScaling: amplitudeScaling ?? self.amplitudeScaling,
                 shouldAntialias: shouldAntialias ?? self.shouldAntialias
             )
         }

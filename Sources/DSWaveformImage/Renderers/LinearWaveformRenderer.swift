@@ -119,7 +119,7 @@ public struct LinearWaveformRenderer: ChannelAwareWaveformRenderer, SpectralAwar
         guard !samples.isEmpty else { return }
         let graphRect = CGRect(origin: .zero, size: configuration.size)
         let center = position.offset() * graphRect.size.height
-        let drawMappingFactor = graphRect.size.height * configuration.verticalScalingFactor
+        let drawMappingFactor = LinearWaveformRenderer.drawMappingFactor(graphRect: graphRect, position: position, sides: drawSides, scaling: configuration.verticalScalingFactor)
         let minAmp: CGFloat = 1 / configuration.scale
         let samplesNeeded = Int(configuration.size.width * configuration.scale)
         let xOffset = CGFloat(samplesNeeded - samples.count) / configuration.scale
@@ -232,7 +232,7 @@ public struct LinearWaveformRenderer: ChannelAwareWaveformRenderer, SpectralAwar
     private func draw(samples: [Float], path: CGMutablePath, with configuration: Waveform.Configuration, lastOffset: Int, sides: Sides, position: Waveform.Position = .middle) -> CGMutablePath {
         let graphRect = CGRect(origin: CGPoint.zero, size: configuration.size)
         let positionAdjustedGraphCenter = position.offset() * graphRect.size.height
-        let drawMappingFactor = graphRect.size.height * configuration.verticalScalingFactor
+        let drawMappingFactor = LinearWaveformRenderer.drawMappingFactor(graphRect: graphRect, position: position, sides: sides, scaling: configuration.verticalScalingFactor)
         let minimumGraphAmplitude: CGFloat = 1 / configuration.scale // we want to see at least a 1px line for silence
         let isStriped: Bool = { if case .striped = configuration.style { return true } else { return false } }()
         var lastXPos: CGFloat = 0
@@ -294,5 +294,34 @@ public struct LinearWaveformRenderer: ChannelAwareWaveformRenderer, SpectralAwar
         }
 
         return path
+    }
+
+    /// Per-direction amplitude budget for one sample column. With `verticalScalingFactor == 1` and
+    /// peak loudness (`invertedDbSample == 1`), the drawn column exactly fills the space the
+    /// centerline leaves available in the chosen direction:
+    ///
+    /// * `position == .top` / `.bottom`: centerline sits at the edge, so a one-sided waveform fills
+    ///   the entire canvas height (full `h`).
+    /// * `position == .middle`: centerline sits at `h/2`, so each side has `h/2` to extend into.
+    /// * `position == .custom(o)`: upward space is `o*h`, downward is `(1-o)*h`; for `sides == .both`
+    ///   we take the smaller side so the waveform stays symmetric and never overruns either edge.
+    ///
+    /// Without this position-awareness, `.middle` (the default) overran the canvas at peak loudness
+    /// because `drawMappingFactor` used the full `h` while the centerline was halfway in.
+    private static func drawMappingFactor(graphRect: CGRect, position: Waveform.Position, sides: Sides, scaling: CGFloat) -> CGFloat {
+        let height = graphRect.size.height
+        let offset = position.offset()
+        let upSpace = offset * height
+        let downSpace = (1 - offset) * height
+        let availableSpace: CGFloat
+        switch sides {
+        case .up:
+            availableSpace = upSpace
+        case .down:
+            availableSpace = downSpace
+        case .both:
+            availableSpace = min(upSpace, downSpace)
+        }
+        return availableSpace * scaling
     }
 }

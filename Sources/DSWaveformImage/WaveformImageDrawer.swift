@@ -97,7 +97,11 @@ extension WaveformImageDrawer {
         // move the window, so that its always at the end (appears to move from right to left)
         let startSample = max(0, samples.count - windowedSampleCount)
         let clippedSamples = Array(samples[startSample..<samples.count])
-        let dampedSamples = configuration.shouldDamp ? damp(clippedSamples, with: configuration, isStereo: isStereo) : clippedSamples
+        // For `.normalized`, normalize against the visible window's peak. In live mode this means the
+        // peak can drift over time as new samples scroll in — that's the only sensible choice since
+        // we don't know the file's full-duration peak yet.
+        let scaledSamples = applyAmplitudeScaling(clippedSamples, scaling: configuration.amplitudeScaling)
+        let dampedSamples = configuration.shouldDamp ? damp(scaledSamples, with: configuration, isStereo: isStereo) : scaledSamples
         let paddedSamples = shouldDrawSilencePadding ? Array(repeating: 1, count: windowedSampleCount - clippedSamples.count) + dampedSamples : dampedSamples
 
         draw(on: context, from: paddedSamples, with: configuration, renderer: renderer, position: position)
@@ -110,6 +114,23 @@ extension WaveformImageDrawer {
 
         drawBackground(on: context, with: configuration)
         renderer.render(samples: samples, on: context, with: configuration, lastOffset: lastOffset, position: position)
+    }
+
+    /// Apply `Waveform.AmplitudeScaling`. For `.absolute` (default) the analyzer's output is used
+    /// as-is. For `.normalized` we shift the loudest sample to the renderer's "loud" end (`0`) and
+    /// stretch the rest of the range to match, so a quiet recording fills the canvas as fully as a
+    /// loud one. The shape of the envelope is preserved.
+    func applyAmplitudeScaling(_ samples: [Float], scaling: Waveform.AmplitudeScaling) -> [Float] {
+        switch scaling {
+        case .absolute:
+            return samples
+        case .normalized:
+            // Samples are in [0, 1] where `0` is loud and `1` is silence. `min()` is therefore the
+            // loudest sample. If the file is already at peak there's nothing to stretch.
+            guard let peak = samples.min(), peak > 0, peak < 1 else { return samples }
+            let range = 1 - peak
+            return samples.map { ($0 - peak) / range }
+        }
     }
 
     /// Damp the samples for a smoother animation.
@@ -172,7 +193,8 @@ private extension WaveformImageDrawer {
             samples = try await waveformAnalyzer.samples(fromAudioAt: audioAssetURL, count: sampleCount, channelSelection: channelSelection, qos: qos)
             effectiveRenderer = renderer
         }
-        let dampedSamples = configuration.shouldDamp ? self.damp(samples, with: configuration, isStereo: channelSelection == .stereo) : samples
+        let scaledSamples = applyAmplitudeScaling(samples, scaling: configuration.amplitudeScaling)
+        let dampedSamples = configuration.shouldDamp ? self.damp(scaledSamples, with: configuration, isStereo: channelSelection == .stereo) : scaledSamples
 
         if let image = waveformImage(from: dampedSamples, with: configuration, renderer: effectiveRenderer, position: position) {
             return image

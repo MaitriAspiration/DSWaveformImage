@@ -13,37 +13,35 @@
 		A96F71A42AE02BB2007ED383 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A96F71A32AE02BB2007ED383 /* Preview Assets.xcassets */; };
 		A96F71AA2AE02C37007ED383 /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = A96F71A92AE02C37007ED383 /* DSWaveformImage */; };
 		A96F71AC2AE02C37007ED383 /* DSWaveformImageViews in Frameworks */ = {isa = PBXBuildFile; productRef = A96F71AB2AE02C37007ED383 /* DSWaveformImageViews */; };
-		A96F71AD2AE02CF4007ED383 /* example_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C39A10F428E2E77F004AB185 /* example_sound.m4a */; };
 		C39A10ED28E2E73F004AB185 /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = C39A10EC28E2E73F004AB185 /* DSWaveformImage */; };
 		C39A10EF28E2E73F004AB185 /* DSWaveformImageViews in Frameworks */ = {isa = PBXBuildFile; productRef = C39A10EE28E2E73F004AB185 /* DSWaveformImageViews */; };
 		C39A10F728E2E77F004AB185 /* SCAudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C39A10F328E2E77F004AB185 /* SCAudioManager.m */; };
-		C39A10F828E2E77F004AB185 /* example_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C39A10F428E2E77F004AB185 /* example_sound.m4a */; };
-		C39A10F928E2E77F004AB185 /* RecordingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A10F528E2E77F004AB185 /* RecordingViewController.swift */; };
-		C39A10FE28E2E91E004AB185 /* SwiftUIExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A10FB28E2E91E004AB185 /* SwiftUIExample.swift */; };
-		C39A10FF28E2E91E004AB185 /* RecordingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A10FC28E2E91E004AB185 /* RecordingIndicatorView.swift */; };
-		C39A110028E2E91E004AB185 /* SwiftUIExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A10FD28E2E91E004AB185 /* SwiftUIExampleView.swift */; };
-		C39A110228E2E98A004AB185 /* example_sound_2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C39A110128E2E98A004AB185 /* example_sound_2.m4a */; };
 		C39A110A28E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A110928E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift */; };
 		C39A110C28E2EABF004AB185 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A110B28E2EABF004AB185 /* ContentView.swift */; };
 		C39A110E28E2EAC0004AB185 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C39A110D28E2EAC0004AB185 /* Assets.xcassets */; };
 		C39A111128E2EAC0004AB185 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C39A111028E2EAC0004AB185 /* Preview Assets.xcassets */; };
 		C39A111928E2EBAD004AB185 /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = C39A111828E2EBAD004AB185 /* DSWaveformImage */; };
 		C39A111B28E2EBAD004AB185 /* DSWaveformImageViews in Frameworks */ = {isa = PBXBuildFile; productRef = C39A111A28E2EBAD004AB185 /* DSWaveformImageViews */; };
-		C39A111C28E2EC50004AB185 /* example_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C39A10F428E2E77F004AB185 /* example_sound.m4a */; };
 		8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
 		7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
 		03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E864759A998641BAAB3AB0D1 /* example_stereo.m4a */; };
-		D5AA1B70CF1242D8A8B3F501 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
-		D5AA1B70CF1242D8A8B3F502 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
-		D5AA1B70CF1242D8A8B3F503 /* sample-12s.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */; };
 		F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
 		0C4F101C6DE441D183707BBA /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
 		14364ADD13D4468397C7CB77 /* WaveformGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */; };
-		C3C83AC72A0BECBD00DF02F2 /* ProgressViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C83AC62A0BECBD00DF02F2 /* ProgressViewController.swift */; };
-		C3C83AC92A0C050900DF02F2 /* ProgressWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C83AC82A0C050900DF02F2 /* ProgressWaveformView.swift */; };
+		DEC0DE00000000000000FFF2 /* GalleryPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF1 /* GalleryPrimitives.swift */; };
+		DEC0DE00000000000000FFF3 /* GalleryPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF1 /* GalleryPrimitives.swift */; };
+		DEC0DE00000000000000FFF4 /* GalleryPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF1 /* GalleryPrimitives.swift */; };
+		DEC0DE00000000000000FFF6 /* ProgressShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF5 /* ProgressShowcase.swift */; };
+		DEC0DE00000000000000FFF7 /* ProgressShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF5 /* ProgressShowcase.swift */; };
+		DEC0DE00000000000000FFF8 /* ProgressShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF5 /* ProgressShowcase.swift */; };
+		DEC0DE00000000000000FFFA /* LiveRecordingShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF9 /* LiveRecordingShowcase.swift */; };
+		DEC0DE00000000000000FFFB /* LiveRecordingShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF9 /* LiveRecordingShowcase.swift */; };
+		DEC0DE00000000000000FFFC /* LiveRecordingShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFF9 /* LiveRecordingShowcase.swift */; };
+		DEC0DE00000000000000FFFE /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE00000000000000FFFD /* AudioRecorder.swift */; };
+		DEC0DE000000000000000100 /* HostingControllers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE0000000000000000FF /* HostingControllers.swift */; };
+		DEC0DE000000000000000102 /* UIKitShowcaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000101 /* UIKitShowcaseViewController.swift */; };
 		C3D671EF28E2E61F006C022D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D671EE28E2E61F006C022D /* AppDelegate.swift */; };
 		C3D671F128E2E61F006C022D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D671F028E2E61F006C022D /* SceneDelegate.swift */; };
-		C3D671F328E2E61F006C022D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D671F228E2E61F006C022D /* ViewController.swift */; };
 		C3D671F628E2E61F006C022D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3D671F428E2E61F006C022D /* Main.storyboard */; };
 		C3D671F828E2E61F006C022D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3D671F728E2E61F006C022D /* Assets.xcassets */; };
 		C3D671FB28E2E61F006C022D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3D671F928E2E61F006C022D /* LaunchScreen.storyboard */; };
@@ -59,14 +57,13 @@
 		C39A10F028E2E77E004AB185 /* DSWaveformImageExample-iOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DSWaveformImageExample-iOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		C39A10F128E2E77F004AB185 /* SCAudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCAudioManager.h; sourceTree = "<group>"; };
 		C39A10F328E2E77F004AB185 /* SCAudioManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCAudioManager.m; sourceTree = "<group>"; };
-		C39A10F428E2E77F004AB185 /* example_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_sound.m4a; sourceTree = "<group>"; };
-		C39A10F528E2E77F004AB185 /* RecordingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingViewController.swift; sourceTree = "<group>"; };
-		C39A10FB28E2E91E004AB185 /* SwiftUIExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftUIExample.swift; sourceTree = "<group>"; };
-		C39A10FC28E2E91E004AB185 /* RecordingIndicatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingIndicatorView.swift; sourceTree = "<group>"; };
-		C39A10FD28E2E91E004AB185 /* SwiftUIExampleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftUIExampleView.swift; sourceTree = "<group>"; };
-		C39A110128E2E98A004AB185 /* example_sound_2.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_sound_2.m4a; sourceTree = "<group>"; };
+		DEC0DE00000000000000FFF1 /* GalleryPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryPrimitives.swift; sourceTree = "<group>"; };
+		DEC0DE00000000000000FFF5 /* ProgressShowcase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressShowcase.swift; sourceTree = "<group>"; };
+		DEC0DE00000000000000FFF9 /* LiveRecordingShowcase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRecordingShowcase.swift; sourceTree = "<group>"; };
+		DEC0DE00000000000000FFFD /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		DEC0DE0000000000000000FF /* HostingControllers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingControllers.swift; sourceTree = "<group>"; };
+		DEC0DE000000000000000101 /* UIKitShowcaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitShowcaseViewController.swift; sourceTree = "<group>"; };
 		E864759A998641BAAB3AB0D1 /* example_stereo.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = example_stereo.m4a; sourceTree = "<group>"; };
-		D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-12s.mp3"; sourceTree = "<group>"; };
 		7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformGalleryView.swift; sourceTree = "<group>"; };
 		C39A110728E2EABF004AB185 /* DSWaveformImageExample-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DSWaveformImageExample-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C39A110928E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSWaveformImageExample_macOSApp.swift; sourceTree = "<group>"; };
@@ -74,12 +71,9 @@
 		C39A110D28E2EAC0004AB185 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C39A111028E2EAC0004AB185 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C39A111228E2EAC0004AB185 /* DSWaveformImageExample_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DSWaveformImageExample_macOS.entitlements; sourceTree = "<group>"; };
-		C3C83AC62A0BECBD00DF02F2 /* ProgressViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressViewController.swift; sourceTree = "<group>"; };
-		C3C83AC82A0C050900DF02F2 /* ProgressWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressWaveformView.swift; sourceTree = "<group>"; };
 		C3D671EB28E2E61F006C022D /* DSWaveformImageExample-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DSWaveformImageExample-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3D671EE28E2E61F006C022D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C3D671F028E2E61F006C022D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		C3D671F228E2E61F006C022D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		C3D671F528E2E61F006C022D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		C3D671F728E2E61F006C022D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C3D671FA28E2E61F006C022D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -145,17 +139,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		C39A10FA28E2E91E004AB185 /* SwiftUIExample */ = {
-			isa = PBXGroup;
-			children = (
-				C39A10FB28E2E91E004AB185 /* SwiftUIExample.swift */,
-				C39A10FC28E2E91E004AB185 /* RecordingIndicatorView.swift */,
-				C39A10FD28E2E91E004AB185 /* SwiftUIExampleView.swift */,
-				C3C83AC82A0C050900DF02F2 /* ProgressWaveformView.swift */,
-			);
-			path = SwiftUIExample;
-			sourceTree = "<group>";
-		};
 		C39A110828E2EABF004AB185 /* DSWaveformImageExample-macOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -203,22 +186,18 @@
 			isa = PBXGroup;
 			children = (
 				C3D671EE28E2E61F006C022D /* AppDelegate.swift */,
+				DEC0DE00000000000000FFFD /* AudioRecorder.swift */,
 				C3D671F728E2E61F006C022D /* Assets.xcassets */,
 				C39A10F028E2E77E004AB185 /* DSWaveformImageExample-iOS-Bridging-Header.h */,
-				C39A110128E2E98A004AB185 /* example_sound_2.m4a */,
-				C39A10F428E2E77F004AB185 /* example_sound.m4a */,
 				E864759A998641BAAB3AB0D1 /* example_stereo.m4a */,
-				D5AA1B70CF1242D8A8B3F500 /* sample-12s.mp3 */,
+				DEC0DE0000000000000000FF /* HostingControllers.swift */,
 				C3D671FC28E2E61F006C022D /* Info.plist */,
 				C3D671F928E2E61F006C022D /* LaunchScreen.storyboard */,
 				C3D671F428E2E61F006C022D /* Main.storyboard */,
-				C3C83AC62A0BECBD00DF02F2 /* ProgressViewController.swift */,
-				C39A10F528E2E77F004AB185 /* RecordingViewController.swift */,
 				C39A10F128E2E77F004AB185 /* SCAudioManager.h */,
 				C39A10F328E2E77F004AB185 /* SCAudioManager.m */,
 				C3D671F028E2E61F006C022D /* SceneDelegate.swift */,
-				C39A10FA28E2E91E004AB185 /* SwiftUIExample */,
-				C3D671F228E2E61F006C022D /* ViewController.swift */,
+				DEC0DE000000000000000101 /* UIKitShowcaseViewController.swift */,
 			);
 			path = "DSWaveformImageExample-iOS";
 			sourceTree = "<group>";
@@ -234,6 +213,9 @@
 		5101E89623D042CF9CB14546 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				DEC0DE00000000000000FFF1 /* GalleryPrimitives.swift */,
+				DEC0DE00000000000000FFF9 /* LiveRecordingShowcase.swift */,
+				DEC0DE00000000000000FFF5 /* ProgressShowcase.swift */,
 				7D12C6CE2D014EEBBE07778C /* WaveformGalleryView.swift */,
 			);
 			path = Shared;
@@ -352,9 +334,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A96F71AD2AE02CF4007ED383 /* example_sound.m4a in Resources */,
 				03A4834AA2D749CA98238457 /* example_stereo.m4a in Resources */,
-				D5AA1B70CF1242D8A8B3F503 /* sample-12s.mp3 in Resources */,
 				A96F71A42AE02BB2007ED383 /* Preview Assets.xcassets in Resources */,
 				A96F71A12AE02BB2007ED383 /* Assets.xcassets in Resources */,
 			);
@@ -364,9 +344,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C39A111C28E2EC50004AB185 /* example_sound.m4a in Resources */,
 				8281C8BC5A154E57B13DF1D6 /* example_stereo.m4a in Resources */,
-				D5AA1B70CF1242D8A8B3F502 /* sample-12s.mp3 in Resources */,
 				C39A111128E2EAC0004AB185 /* Preview Assets.xcassets in Resources */,
 				C39A110E28E2EAC0004AB185 /* Assets.xcassets in Resources */,
 			);
@@ -376,12 +354,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C39A110228E2E98A004AB185 /* example_sound_2.m4a in Resources */,
 				C3D671FB28E2E61F006C022D /* LaunchScreen.storyboard in Resources */,
 				C3D671F828E2E61F006C022D /* Assets.xcassets in Resources */,
-				C39A10F828E2E77F004AB185 /* example_sound.m4a in Resources */,
 				7249C5E7B3AD490381C31042 /* example_stereo.m4a in Resources */,
-				D5AA1B70CF1242D8A8B3F501 /* sample-12s.mp3 in Resources */,
 				C3D671F628E2E61F006C022D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -395,6 +370,9 @@
 			files = (
 				A96F719F2AE02BB1007ED383 /* ContentView.swift in Sources */,
 				A96F719D2AE02BB1007ED383 /* DSWaveformImageExample_VisionOSApp.swift in Sources */,
+				DEC0DE00000000000000FFF4 /* GalleryPrimitives.swift in Sources */,
+				DEC0DE00000000000000FFFC /* LiveRecordingShowcase.swift in Sources */,
+				DEC0DE00000000000000FFF8 /* ProgressShowcase.swift in Sources */,
 				14364ADD13D4468397C7CB77 /* WaveformGalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -405,6 +383,9 @@
 			files = (
 				C39A110C28E2EABF004AB185 /* ContentView.swift in Sources */,
 				C39A110A28E2EABF004AB185 /* DSWaveformImageExample_macOSApp.swift in Sources */,
+				DEC0DE00000000000000FFF3 /* GalleryPrimitives.swift in Sources */,
+				DEC0DE00000000000000FFFB /* LiveRecordingShowcase.swift in Sources */,
+				DEC0DE00000000000000FFF7 /* ProgressShowcase.swift in Sources */,
 				0C4F101C6DE441D183707BBA /* WaveformGalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -413,17 +394,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C3C83AC72A0BECBD00DF02F2 /* ProgressViewController.swift in Sources */,
-				C3D671F328E2E61F006C022D /* ViewController.swift in Sources */,
-				C39A10F928E2E77F004AB185 /* RecordingViewController.swift in Sources */,
 				C3D671EF28E2E61F006C022D /* AppDelegate.swift in Sources */,
-				C39A10FF28E2E91E004AB185 /* RecordingIndicatorView.swift in Sources */,
+				DEC0DE00000000000000FFFE /* AudioRecorder.swift in Sources */,
+				DEC0DE00000000000000FFF2 /* GalleryPrimitives.swift in Sources */,
+				DEC0DE000000000000000100 /* HostingControllers.swift in Sources */,
+				DEC0DE00000000000000FFFA /* LiveRecordingShowcase.swift in Sources */,
+				DEC0DE00000000000000FFF6 /* ProgressShowcase.swift in Sources */,
 				C39A10F728E2E77F004AB185 /* SCAudioManager.m in Sources */,
-				C3C83AC92A0C050900DF02F2 /* ProgressWaveformView.swift in Sources */,
-				C39A110028E2E91E004AB185 /* SwiftUIExampleView.swift in Sources */,
-				C39A10FE28E2E91E004AB185 /* SwiftUIExample.swift in Sources */,
-				F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */,
 				C3D671F128E2E61F006C022D /* SceneDelegate.swift in Sources */,
+				DEC0DE000000000000000102 /* UIKitShowcaseViewController.swift in Sources */,
+				F8EE0A3F1E564D46A1D14673 /* WaveformGalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

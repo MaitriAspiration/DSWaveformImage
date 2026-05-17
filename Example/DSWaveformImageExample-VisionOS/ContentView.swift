@@ -4,7 +4,13 @@ import DSWaveformImageViews
 
 struct ContentView: View {
     var body: some View {
-        WaveformGalleryView()
+        TabView {
+            WaveformGalleryView()
+                .tabItem { Label("Static Files", systemImage: "waveform") }
+
+            ProgressShowcase()
+                .tabItem { Label("Progress", systemImage: "play.circle.fill") }
+        }
     }
 }
 
