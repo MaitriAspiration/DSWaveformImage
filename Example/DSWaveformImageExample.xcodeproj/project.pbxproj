@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7118765B2FF8E7EB00354786 /* hello.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 7118765A2FF8E7EB00354786 /* hello.m4a */; };
 		C39A10ED28E2E73F004AB185 /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = C39A10EC28E2E73F004AB185 /* DSWaveformImage */; };
 		C39A10EF28E2E73F004AB185 /* DSWaveformImageViews in Frameworks */ = {isa = PBXBuildFile; productRef = C39A10EE28E2E73F004AB185 /* DSWaveformImageViews */; };
 		C39A10F728E2E77F004AB185 /* SCAudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C39A10F328E2E77F004AB185 /* SCAudioManager.m */; };
@@ -35,7 +34,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		7118765A2FF8E7EB00354786 /* hello.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = hello.m4a; sourceTree = "<group>"; };
 		C39A10F028E2E77E004AB185 /* DSWaveformImageExample-iOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DSWaveformImageExample-iOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		C39A10F128E2E77F004AB185 /* SCAudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCAudioManager.h; sourceTree = "<group>"; };
 		C39A10F328E2E77F004AB185 /* SCAudioManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCAudioManager.m; sourceTree = "<group>"; };
@@ -151,7 +149,6 @@
 				C3D671F728E2E61F006C022D /* Assets.xcassets */,
 				C39A10F028E2E77E004AB185 /* DSWaveformImageExample-iOS-Bridging-Header.h */,
 				C39A110128E2E98A004AB185 /* example_sound_2.m4a */,
-				7118765A2FF8E7EB00354786 /* hello.m4a */,
 				C39A10F428E2E77F004AB185 /* example_sound.m4a */,
 				C3D671FC28E2E61F006C022D /* Info.plist */,
 				C3D671F928E2E61F006C022D /* LaunchScreen.storyboard */,
@@ -274,7 +271,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C39A110228E2E98A004AB185 /* example_sound_2.m4a in Resources */,
-				7118765B2FF8E7EB00354786 /* hello.m4a in Resources */,
 				C3D671FB28E2E61F006C022D /* LaunchScreen.storyboard in Resources */,
 				C3D671F828E2E61F006C022D /* Assets.xcassets in Resources */,
 				C39A10F828E2E77F004AB185 /* example_sound.m4a in Resources */,
