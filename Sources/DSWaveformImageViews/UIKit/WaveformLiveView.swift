@@ -1,7 +1,7 @@
 #if os(iOS)
-import DSWaveformImage
 import Foundation
 import UIKit
+import DSWaveformImage
 
 /// Renders a live waveform everytime its `(0...1)`-normalized samples are changed.
 public class WaveformLiveView: UIView {

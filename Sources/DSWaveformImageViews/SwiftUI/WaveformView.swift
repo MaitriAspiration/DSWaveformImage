@@ -1,5 +1,5 @@
-import DSWaveformImage
 import SwiftUI
+import DSWaveformImage
 
 @available(iOS 14.0, *)
 /// Renders and displays a waveform for the audio at `audioURL`.

@@ -128,13 +128,20 @@ fileprivate extension WaveformAnalyzer {
         var sampleBuffer = Data()
         var sampleBufferFFT = Data()
 
+        // Guard against invalid inputs that would otherwise crash below:
+        // - targetSampleCount == 0 -> integer division by zero at samplesPerPixel
+        // - totalSamples <= 0 -> nothing to process
+        guard targetSampleCount > 0, totalSamples > 0 else {
+            return WaveformAnalysis(amplitudes: [], fft: outputFFT)
+        }
+
         // read upfront to avoid frequent re-calculation (and memory bloat from C-bridging)
         let samplesPerPixel = max(1, totalSamples / targetSampleCount)
         let samplesPerFFT = 4096 // ~100ms at 44.1kHz, rounded to closest pow(2) for FFT
 
         self.assetReader.startReading()
         while self.assetReader.status == .reading {
-            let trackOutput = assetReader.outputs.first!
+            guard let trackOutput = assetReader.outputs.first else { break }
 
             guard let nextSampleBuffer = trackOutput.copyNextSampleBuffer(),
                 let blockBuffer = CMSampleBufferGetDataBuffer(nextSampleBuffer) else {
@@ -173,15 +180,25 @@ fileprivate extension WaveformAnalyzer {
         // process leftover samples with padding (to reach multiple of samplesPerPixel for vDSP_desamp)
         if outputSamples.count < targetSampleCount {
             let missingSampleCount = (targetSampleCount - outputSamples.count) * samplesPerPixel
-            let backfillPaddingSampleCount = missingSampleCount - (sampleBuffer.count / MemoryLayout<Int16>.size)
+            let existingSampleCount = sampleBuffer.count / MemoryLayout<Int16>.size
+            // Clamp to zero: leftover samples in `sampleBuffer` can exceed `missingSampleCount`,
+            // which would otherwise make the count negative and crash Array/Data with
+            // "Can't construct Array with negative count".
+            let backfillPaddingSampleCount = max(0, missingSampleCount - existingSampleCount)
             let backfillPaddingSampleCount16 = backfillPaddingSampleCount * MemoryLayout<Int16>.size
-            let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingSampleCount16)
-            sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingSampleCount16)
+            if backfillPaddingSampleCount16 > 0 {
+                let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingSampleCount16)
+                sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingSampleCount16)
+            }
             let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel)
             outputSamples += processedSamples
         }
 
-        let targetSamples = Array(outputSamples[0..<targetSampleCount])
+        // Clamp instead of forcing a fixed width: after a short/failed read `outputSamples`
+        // can still be smaller than `targetSampleCount`, which would crash the slice with
+        // "Array slice index is out of range".
+        let safeCount = min(outputSamples.count, targetSampleCount)
+        let targetSamples = Array(outputSamples[0..<safeCount])
         return WaveformAnalysis(amplitudes: normalize(targetSamples), fft: outputFFT)
     }
 
@@ -191,12 +208,13 @@ fileprivate extension WaveformAnalyzer {
         var downSampledData = [Float]()
         let sampleLength = sampleBuffer.count / MemoryLayout<Int16>.size
 
-        // guard for crash in very long audio files
-        guard sampleLength / samplesPerPixel > 0 else { return downSampledData }
+        // guard for crash in very long audio files, empty buffers (nil baseAddress),
+        // and division by zero when samplesPerPixel <= 0
+        guard samplesPerPixel > 0, sampleLength / samplesPerPixel > 0 else { return downSampledData }
 
         sampleBuffer.withUnsafeBytes { (samplesRawPointer: UnsafeRawBufferPointer) in
             let unsafeSamplesBufferPointer = samplesRawPointer.bindMemory(to: Int16.self)
-            let unsafeSamplesPointer = unsafeSamplesBufferPointer.baseAddress!
+            guard let unsafeSamplesPointer = unsafeSamplesBufferPointer.baseAddress else { return }
             var loudestClipValue: Float = 0.0
             var quietestClipValue = noiseFloorDecibelCutoff
             var zeroDbEquivalent: Float = Float(Int16.max) // maximum amplitude storable in Int16 = 0 Db (loudest)
@@ -228,9 +246,11 @@ fileprivate extension WaveformAnalyzer {
                          fftBands: Int) -> [TempiFFT] {
         var ffts = [TempiFFT]()
         let sampleLength = sampleBuffer.count / MemoryLayout<Int16>.size
+        // Need at least one full FFT window; also guards against a nil baseAddress.
+        guard samplesPerFFT > 0, fftBands > 0, sampleLength >= samplesPerFFT else { return ffts }
         sampleBuffer.withUnsafeBytes { (samplesRawPointer: UnsafeRawBufferPointer) in
             let unsafeSamplesBufferPointer = samplesRawPointer.bindMemory(to: Int16.self)
-            let unsafeSamplesPointer = unsafeSamplesBufferPointer.baseAddress!
+            guard let unsafeSamplesPointer = unsafeSamplesBufferPointer.baseAddress else { return }
             let samplesToProcess = vDSP_Length(sampleLength)
 
             var processingBuffer = [Float](repeating: 0.0, count: Int(samplesToProcess))
@@ -264,10 +284,17 @@ fileprivate extension WaveformAnalyzer {
                 guard let basicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) else { return }
                 let channelCount = Int(basicDescription.pointee.mChannelsPerFrame)
                 let sampleRate = basicDescription.pointee.mSampleRate
+                let rawTimescale = assetReader.asset.duration.timescale
+                // Malformed / streaming assets can report an invalid (zero) timescale or a
+                // non-finite duration, which would make Int(...) below trap with
+                // "Double value cannot be converted to Int because it is either infinite or NaN".
+                guard rawTimescale != 0, channelCount > 0, sampleRate.isFinite, sampleRate > 0 else { return }
                 let duration = Double(assetReader.asset.duration.value)
-                let timescale = Double(assetReader.asset.duration.timescale)
-                let totalDuration = duration / timescale
-                totalSamples = Int(sampleRate * totalDuration) * channelCount
+                let totalDuration = duration / Double(rawTimescale)
+                guard totalDuration.isFinite, totalDuration >= 0 else { return }
+                let computedSamples = sampleRate * totalDuration * Double(channelCount)
+                guard computedSamples.isFinite, computedSamples >= 0, computedSamples < Double(Int.max) else { return }
+                totalSamples = Int(computedSamples)
             }
         }
 
