@@ -158,41 +158,61 @@ fileprivate extension WaveformAnalyzer {
         // audio (large `samplesPerPixel`) meant repeated multi-MB allocations and heavy churn.
         let averagingFilter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)
 
-        self.assetReader.startReading()
-        while self.assetReader.status == .reading {
-            guard let trackOutput = assetReader.outputs.first else { break }
+        // Bail out explicitly if the reader can't start, so callers see a failed status
+        // instead of silently receiving an empty waveform.
+        guard assetReader.startReading() else {
+            return WaveformAnalysis(amplitudes: [], fft: outputFFT)
+        }
 
-            guard let nextSampleBuffer = trackOutput.copyNextSampleBuffer(),
-                let blockBuffer = CMSampleBufferGetDataBuffer(nextSampleBuffer) else {
-                    break
+        outputSamples.reserveCapacity(targetSampleCount)
+
+        while assetReader.status == .reading {
+            // CRITICAL: each `copyNextSampleBuffer()` makes AVFoundation's decoder produce a
+            // fresh buffer plus autoreleased internal allocations. `CMSampleBufferInvalidate`
+            // frees the buffer's data but NOT that autoreleased memory, which is only drained
+            // when the enclosing scope returns. Since `extract(...)` runs as one long block on a
+            // global queue, without a per-iteration pool the undrained memory grows linearly with
+            // duration (~100k buffers on a 1h45m file), spiking until the OS jetsam-kills the app
+            // before the read reaches `.completed`. Draining every iteration keeps peak memory
+            // flat regardless of audio length, so files longer than 2 hours complete reliably.
+            let reachedEnd: Bool = autoreleasepool {
+                guard let trackOutput = assetReader.outputs.first,
+                      let nextSampleBuffer = trackOutput.copyNextSampleBuffer(),
+                      let blockBuffer = CMSampleBufferGetDataBuffer(nextSampleBuffer) else {
+                    return true
+                }
+
+                var readBufferLength = 0
+                var readBufferPointer: UnsafeMutablePointer<Int8>? = nil
+                CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: &readBufferLength, totalLengthOut: nil, dataPointerOut: &readBufferPointer)
+                sampleBuffer.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
+                if fftBands != nil {
+                    // don't append data to this buffer unless we're going to use it.
+                    sampleBufferFFT.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
+                }
+                CMSampleBufferInvalidate(nextSampleBuffer)
+
+                let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, filter: averagingFilter)
+                outputSamples += processedSamples
+
+                if processedSamples.count > 0 {
+                    // vDSP_desamp uses strides of samplesPerPixel; remove only the processed ones
+                    sampleBuffer.removeFirst(processedSamples.count * samplesPerPixel * MemoryLayout<Int16>.size)
+
+                    // this takes care of a memory leak where Memory continues to increase even though it should clear after calling .removeFirst(…) above.
+                    sampleBuffer = Data(sampleBuffer)
+                }
+
+                if let fftBands = fftBands, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
+                    let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, fftBands: fftBands)
+                    sampleBufferFFT.removeFirst(processedFFTs.count * samplesPerFFT * MemoryLayout<Int16>.size)
+                    outputFFT? += processedFFTs
+                }
+
+                return false
             }
 
-            var readBufferLength = 0
-            var readBufferPointer: UnsafeMutablePointer<Int8>? = nil
-            CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: &readBufferLength, totalLengthOut: nil, dataPointerOut: &readBufferPointer)
-            sampleBuffer.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
-            if fftBands != nil {
-                // don't append data to this buffer unless we're going to use it.
-                sampleBufferFFT.append(UnsafeBufferPointer(start: readBufferPointer, count: readBufferLength))
-            }
-            CMSampleBufferInvalidate(nextSampleBuffer)
-
-            let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, filter: averagingFilter)
-            outputSamples += processedSamples
-
-            if processedSamples.count > 0 {
-                // vDSP_desamp uses strides of samplesPerPixel; remove only the processed ones
-                sampleBuffer.removeFirst(processedSamples.count * samplesPerPixel * MemoryLayout<Int16>.size)
-
-                // this takes care of a memory leak where Memory continues to increase even though it should clear after calling .removeFirst(…) above.
-                sampleBuffer = Data(sampleBuffer)
-            }
-
-            if let fftBands = fftBands, sampleBufferFFT.count / MemoryLayout<Int16>.size >= samplesPerFFT {
-                let processedFFTs = process(sampleBufferFFT, samplesPerFFT: samplesPerFFT, fftBands: fftBands)
-                sampleBufferFFT.removeFirst(processedFFTs.count * samplesPerFFT * MemoryLayout<Int16>.size)
-                outputFFT? += processedFFTs
-            }
+            if reachedEnd { break }
         }
 
         // if we don't have enough pixels yet,
