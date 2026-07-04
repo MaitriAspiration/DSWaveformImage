@@ -62,7 +62,10 @@ public struct WaveformView: View {
                 let image = try await waveformDrawer.waveformImage(fromAudioAt: url, with: configuration.with(size: size), renderer: renderer)
                 await MainActor.run { waveformImage = image }
             } catch {
-                assertionFailure(error.localizedDescription)
+                // Don't crash in release (assertionFailure is a no-op there and would silently
+                // swallow the failure); log the underlying error so long-audio/read failures are
+                // diagnosable, and keep any previously rendered image.
+                print("WaveformView failed to render waveform for \(url.lastPathComponent): \(error)")
             }
         }
     }

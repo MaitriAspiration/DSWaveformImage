@@ -1,0 +1,68 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/master.swiftdeps"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/CircularWaveformRenderer.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/LinearWaveformRenderer.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/WaveformRenderer.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/TempiFFT.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformAnalyzer.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+iOS.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+macOS.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.dia"
+  },
+  "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageTypes.swift": {
+    "dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.d",
+    "object": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.swift.o",
+    "swiftmodule": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.swiftdeps",
+    "diagnostics": "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.dia"
+  }
+}

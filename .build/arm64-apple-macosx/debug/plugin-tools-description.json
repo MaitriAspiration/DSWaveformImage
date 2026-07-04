@@ -1,0 +1,572 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.DSWaveformImage-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/sources",
+      "importPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/CircularWaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/LinearWaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/WaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/TempiFFT.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformAnalyzer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+iOS.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+macOS.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageTypes.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DSWaveformImage",
+      "moduleOutputPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules/DSWaveformImage.swiftmodule",
+      "objects" : [
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx11.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/include/DSWaveformImage-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g"
+      ],
+      "outputFileMapPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/CircularWaveformRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/LinearWaveformRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/TempiFFT.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformAnalyzer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+iOS.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer+macOS.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageDrawer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/WaveformImageTypes.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules/DSWaveformImage.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/CircularWaveformRenderer.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/LinearWaveformRenderer.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/WaveformRenderer.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/TempiFFT.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformAnalyzer.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+iOS.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+macOS.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageTypes.swift"
+      ],
+      "tempsPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.DSWaveformImageViews-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/sources",
+      "importPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformLiveCanvas.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformImageView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformLiveView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules/DSWaveformImage.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DSWaveformImageViews",
+      "moduleOutputPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules/DSWaveformImageViews.swiftmodule",
+      "objects" : [
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformLiveCanvas.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformView.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformImageView.swift.o",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformLiveView.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx11.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/include/DSWaveformImageViews-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g"
+      ],
+      "outputFileMapPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformLiveCanvas.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformImageView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/WaveformLiveView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules/DSWaveformImageViews.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformLiveCanvas.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformView.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformImageView.swift",
+        "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformLiveView.swift"
+      ],
+      "tempsPath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "DSWaveformImage" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "DSWaveformImage",
+      "-c",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/CircularWaveformRenderer.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/LinearWaveformRenderer.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/WaveformRenderer.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/TempiFFT.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformAnalyzer.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+iOS.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+macOS.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageTypes.swift",
+      "-I",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx11.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/include/DSWaveformImage-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "DSWaveformImageViews" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "DSWaveformImageViews",
+      "-c",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformLiveCanvas.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformView.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformImageView.swift",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformLiveView.swift",
+      "-I",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx11.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/include/DSWaveformImageViews-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "DSWaveformImage" : [
+
+    ],
+    "DSWaveformImageViews" : [
+      "DSWaveformImage"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/CircularWaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/LinearWaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/Renderers/WaveformRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/TempiFFT.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformAnalyzer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+iOS.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer+macOS.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageDrawer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImage/WaveformImageTypes.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImage.build/sources"
+    },
+    "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformLiveCanvas.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/SwiftUI/WaveformView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformImageView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/Sources/DSWaveformImageViews/UIKit/WaveformLiveView.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/DSWaveformImageViews.build/sources"
+    },
+    "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Volumes/WORK/Maitri/Clone Project/DSWaveFormImage/DSWaveformImage/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

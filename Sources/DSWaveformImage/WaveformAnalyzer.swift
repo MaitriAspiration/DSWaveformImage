@@ -18,10 +18,23 @@ struct WaveformAnalysis {
 
 /// Calculates the waveform of the initialized asset URL.
 public class WaveformAnalyzer {
-    public enum AnalyzeError: Error { case generic }
+    public enum AnalyzeError: Error {
+        case generic
+        /// The requested sample count was <= 0.
+        case invalidSampleCount
+        /// The asset's `duration` could not be loaded.
+        case durationLoadFailed(Error?)
+        /// The `AVAssetReader` did not finish reading (e.g. failed under memory pressure).
+        /// Carries `assetReader.error` when available.
+        case readingFailed(status: AVAssetReader.Status, underlying: Error?)
+    }
 
     /// Everything below this noise floor cutoff will be clipped and interpreted as silence. Default is `-50.0`.
     public var noiseFloorDecibelCutoff: Float = -50.0
+
+    /// Sample rate (Hz) the audio is decoded at for analysis. Lower values dramatically reduce
+    /// memory/CPU for long files with no visible impact on the amplitude envelope. Default is `8000`.
+    public var analysisSampleRate: Double = 8000
 
     private let assetReader: AVAssetReader
     private let audioAssetTrack: AVAssetTrack
@@ -53,12 +66,8 @@ public class WaveformAnalyzer {
     /// Returns sampled result or nil in edge-error cases.
     public func samples(count: Int, qos: DispatchQoS.QoSClass = .userInitiated) async throws -> [Float] {
         try await withCheckedThrowingContinuation { continuation in
-            waveformSamples(count: count, qos: qos, fftBands: nil) { analysis in
-                if let amplitudes = analysis?.amplitudes {
-                    continuation.resume(with: .success(amplitudes))
-                } else {
-                    continuation.resume(with: .failure(AnalyzeError.generic))
-                }
+            waveformSamples(count: count, qos: qos, fftBands: nil) { result in
+                continuation.resume(with: result.map { $0.amplitudes })
             }
         }
     }
@@ -70,8 +79,14 @@ public class WaveformAnalyzer {
     /// - Parameter qos: QoS of the DispatchQueue the calculations are performed (and returned) on.
     /// - Parameter completionHandler: called from a background thread. Returns the sampled result or nil in edge-error cases.
     public func samples(count: Int, qos: DispatchQoS.QoSClass = .userInitiated, completionHandler: @escaping (_ amplitudes: [Float]?) -> ()) {
-        waveformSamples(count: count, qos: qos, fftBands: nil) { analysis in
-            completionHandler(analysis?.amplitudes)
+        waveformSamples(count: count, qos: qos, fftBands: nil) { result in
+            switch result {
+            case .success(let analysis):
+                completionHandler(analysis.amplitudes)
+            case .failure(let error):
+                print("ERROR: waveform analysis failed: \(error)")
+                completionHandler(nil)
+            }
         }
     }
 }
@@ -83,9 +98,9 @@ fileprivate extension WaveformAnalyzer {
             count requiredNumberOfSamples: Int,
             qos: DispatchQoS.QoSClass,
             fftBands: Int?,
-            completionHandler: @escaping (_ analysis: WaveformAnalysis?) -> ()) {
+            completionHandler: @escaping (_ result: Result<WaveformAnalysis, AnalyzeError>) -> ()) {
         guard requiredNumberOfSamples > 0 else {
-            completionHandler(nil)
+            completionHandler(.failure(.invalidSampleCount))
             return
         }
 
@@ -103,19 +118,18 @@ fileprivate extension WaveformAnalyzer {
 
                     switch self.assetReader.status {
                     case .completed:
-                        completionHandler(analysis)
+                        completionHandler(.success(analysis))
                     default:
-                        print("ERROR: reading waveform audio data has failed \(self.assetReader.status)")
-                        completionHandler(nil)
+                        // Surface the actual reader error (e.g. a failure under memory pressure on a
+                        // long file) instead of silently returning nil, so callers can diagnose it.
+                        completionHandler(.failure(.readingFailed(status: self.assetReader.status, underlying: self.assetReader.error)))
                     }
                 }
 
             case .failed, .cancelled, .loading, .unknown:
-                print("failed to load due to: \(error?.localizedDescription ?? "unknown error")")
-                completionHandler(nil)
+                completionHandler(.failure(.durationLoadFailed(error)))
             @unknown default:
-                print("failed to load due to: \(error?.localizedDescription ?? "unknown error")")
-                completionHandler(nil)
+                completionHandler(.failure(.durationLoadFailed(error)))
             }
         }
     }
@@ -139,6 +153,11 @@ fileprivate extension WaveformAnalyzer {
         let samplesPerPixel = max(1, totalSamples / targetSampleCount)
         let samplesPerFFT = 4096 // ~100ms at 44.1kHz, rounded to closest pow(2) for FFT
 
+        // Build the averaging filter once. It is `samplesPerPixel` elements long and was
+        // previously re-allocated on every emitted pixel inside `process(...)`, which for long
+        // audio (large `samplesPerPixel`) meant repeated multi-MB allocations and heavy churn.
+        let averagingFilter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)
+
         self.assetReader.startReading()
         while self.assetReader.status == .reading {
             guard let trackOutput = assetReader.outputs.first else { break }
@@ -158,7 +177,7 @@ fileprivate extension WaveformAnalyzer {
             }
             CMSampleBufferInvalidate(nextSampleBuffer)
 
-            let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel)
+            let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, filter: averagingFilter)
             outputSamples += processedSamples
 
             if processedSamples.count > 0 {
@@ -178,7 +197,13 @@ fileprivate extension WaveformAnalyzer {
 
         // if we don't have enough pixels yet,
         // process leftover samples with padding (to reach multiple of samplesPerPixel for vDSP_desamp)
-        if outputSamples.count < targetSampleCount {
+        //
+        // Only backfill after a *successful* read. On a partial/failed read of a long file
+        // `outputSamples.count` stays small, so `missingSampleCount` (≈ targetSampleCount *
+        // samplesPerPixel ≈ totalSamples) would allocate a zero buffer roughly the size of the
+        // entire decoded file (potentially gigabytes) and OOM-crash. Gating on `.completed`
+        // guarantees `sampleBuffer` holds at most one leftover `samplesPerPixel` window.
+        if outputSamples.count < targetSampleCount, assetReader.status == .completed {
             let missingSampleCount = (targetSampleCount - outputSamples.count) * samplesPerPixel
             let existingSampleCount = sampleBuffer.count / MemoryLayout<Int16>.size
             // Clamp to zero: leftover samples in `sampleBuffer` can exceed `missingSampleCount`,
@@ -190,7 +215,7 @@ fileprivate extension WaveformAnalyzer {
                 let backfillPaddingSamples = [UInt8](repeating: 0, count: backfillPaddingSampleCount16)
                 sampleBuffer.append(backfillPaddingSamples, count: backfillPaddingSampleCount16)
             }
-            let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel)
+            let processedSamples = process(sampleBuffer, from: assetReader, downsampleTo: samplesPerPixel, filter: averagingFilter)
             outputSamples += processedSamples
         }
 
@@ -204,13 +229,14 @@ fileprivate extension WaveformAnalyzer {
 
     private func process(_ sampleBuffer: Data,
                          from assetReader: AVAssetReader,
-                         downsampleTo samplesPerPixel: Int) -> [Float] {
+                         downsampleTo samplesPerPixel: Int,
+                         filter: [Float]) -> [Float] {
         var downSampledData = [Float]()
         let sampleLength = sampleBuffer.count / MemoryLayout<Int16>.size
 
         // guard for crash in very long audio files, empty buffers (nil baseAddress),
         // and division by zero when samplesPerPixel <= 0
-        guard samplesPerPixel > 0, sampleLength / samplesPerPixel > 0 else { return downSampledData }
+        guard samplesPerPixel > 0, sampleLength / samplesPerPixel > 0, filter.count == samplesPerPixel else { return downSampledData }
 
         sampleBuffer.withUnsafeBytes { (samplesRawPointer: UnsafeRawBufferPointer) in
             let unsafeSamplesBufferPointer = samplesRawPointer.bindMemory(to: Int16.self)
@@ -226,7 +252,6 @@ fileprivate extension WaveformAnalyzer {
             vDSP_vdbcon(processingBuffer, 1, &zeroDbEquivalent, &processingBuffer, 1, samplesToProcess, 1) // convert to DB
             vDSP_vclip(processingBuffer, 1, &quietestClipValue, &loudestClipValue, &processingBuffer, 1, samplesToProcess)
 
-            let filter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)
             let downSampledLength = sampleLength / samplesPerPixel
             downSampledData = [Float](repeating: 0.0, count: downSampledLength)
 
@@ -292,7 +317,12 @@ fileprivate extension WaveformAnalyzer {
                 let duration = Double(assetReader.asset.duration.value)
                 let totalDuration = duration / Double(rawTimescale)
                 guard totalDuration.isFinite, totalDuration >= 0 else { return }
-                let computedSamples = sampleRate * totalDuration * Double(channelCount)
+                // The track output decodes at `analysisSampleRate` (see `outputSettings()`), so the
+                // number of samples actually delivered by the reader is based on that rate, not the
+                // source rate. Using the source rate here would over-estimate `totalSamples` and thus
+                // inflate `samplesPerPixel`, leaving the waveform padded with trailing silence.
+                let effectiveSampleRate = min(sampleRate, analysisSampleRate)
+                let computedSamples = effectiveSampleRate * totalDuration * Double(channelCount)
                 guard computedSamples.isFinite, computedSamples >= 0, computedSamples < Double(Int.max) else { return }
                 totalSamples = Int(computedSamples)
             }
@@ -309,6 +339,12 @@ private extension WaveformAnalyzer {
     func outputSettings() -> [String: Any] {
         return [
             AVFormatIDKey: kAudioFormatLinearPCM,
+            // Decode at a reduced analysis sample rate. The amplitude envelope needs
+            // very little frequency resolution, so 8 kHz is plenty while cutting the
+            // decoded sample count (and therefore CPU time, `samplesPerPixel`, and every
+            // downstream allocation) by ~5.5x for 44.1 kHz sources. This is the single
+            // biggest safeguard against hangs/OOM on very long audio files.
+            AVSampleRateKey: analysisSampleRate,
             AVLinearPCMBitDepthKey: 16,
             AVLinearPCMIsBigEndianKey: false,
             AVLinearPCMIsFloatKey: false,
